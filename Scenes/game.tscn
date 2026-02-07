@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://bw0cvb78knppp"]
+
+[ext_resource type="PackedScene" uid="uid://cu1dbrc5ma05g" path="res://Scenes/room_generator.tscn" id="1_ebmjs"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ebmjs"]
+frequency = 0.0247
+
+[node name="Game" type="Node2D" unique_id=2091573270]
+
+[node name="RoomGenerator" parent="." unique_id=2137907979 instance=ExtResource("1_ebmjs")]
+altitude_noise = SubResource("FastNoiseLite_ebmjs")
+
+[node name="Camera" type="Camera2D" parent="." unique_id=1792823094]
+position = Vector2(720, 405)
