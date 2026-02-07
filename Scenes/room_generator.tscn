@@ -1,8 +1,6 @@
 [gd_scene format=3 uid="uid://cu1dbrc5ma05g"]
 
 [ext_resource type="Script" uid="uid://dr1d716t7ef1q" path="res://Scenes/room_generator.gd" id="1_76u6l"]
-[ext_resource type="PackedScene" uid="uid://blxhxchff6cu1" path="res://Scenes/tile.tscn" id="2_3ihyh"]
 
 [node name="RoomGenerator" type="Node2D" unique_id=2137907979]
 script = ExtResource("1_76u6l")
-tile = ExtResource("2_3ihyh")
