@@ -1,4 +1,5 @@
 extends TileMapLayer
+class_name RoomGenerator
 
 #region Exports
 @export_group("Room access")
@@ -26,7 +27,7 @@ extends TileMapLayer
 ## Not used???
 @export_range(5, 100, 1) var min_room_size: int = 50
 ## Amount of empty space around given room's entry and exit points
-@export_range(1, 10, 1) var access_size: int = 5;
+@export_range(1, 10, 1) var access_size: int = 3;
 
 @export_group("Room settings")
 ## Room size
@@ -47,10 +48,6 @@ const EMPTY: int = -1
 
 ## Stores a given generated room
 var room: Dictionary = {}
-## Start position in given room
-var start_point: Vector2
-## End position in given room
-var end_point: Vector2
 #endregion
 
 func _ready() -> void:
@@ -63,15 +60,16 @@ func _ready() -> void:
 	generate_level(room_start_point, room_end_point)
 
 #region Access point functions
-## Depending on the randomization settings, will (or won't) pick ranodm start/end points
+## Depending on the randomization settings, will (or won't) pick random start/end points
 func attempt_random_access() -> void:
-	if random_start_point:
-		room_start_point = randomize_access_point(0, room_width, room_height);
-	elif random_end_point:
-		room_end_point = randomize_access_point(0, room_width, room_height);
-	elif random_access_points:
+	if random_access_points:
 		room_start_point = randomize_access_point(0, room_width, room_height);
 		room_end_point = randomize_access_point(0, room_width, room_height);
+	else:
+		if random_start_point:
+			room_start_point = randomize_access_point(0, room_width, room_height);
+		if random_end_point:
+			room_end_point = randomize_access_point(0, room_width, room_height);
 
 ## Randomize access point Vector with variable width/height
 func randomize_access_point(min_value: int, max_x_value: int, max_y_value: int) -> Vector2:
@@ -134,8 +132,8 @@ func generate_level(start: Vector2, end: Vector2) -> void:
 			smooth_room()
 		
 		## Make space around start and end points to allow for movement
-		make_space(start_point, access_size)
-		make_space(end_point, access_size)
+		make_space(room_start_point, access_size)
+		make_space(room_end_point, access_size)
 		
 		## Check if given room can even be traversed
 		room_is_valid = check_path_exists()
@@ -266,8 +264,8 @@ func check_path_exists() -> bool:
 	
 	## Check if there's a way to get from start to end with A*.
 	## Check is invalid even if there's a diagonal connection. We want *rooms*  without those.
-	var start_id = get_point_id(start_point)
-	var end_id = get_point_id(end_point)
+	var start_id = get_point_id(room_start_point)
+	var end_id = get_point_id(room_end_point)
 	
 	return astar.has_point(start_id) && astar.has_point(end_id) && \
 		astar.get_point_path(start_id, end_id).size() > 0
@@ -314,4 +312,14 @@ func apply_to_tileset() -> void:
 			## Empty tile
 			else:
 				set_cell(pos, 0, Vector2i(0, 25))  ## Black tile on index x0,y26
+	
+	## Start and End points get special Tiles assigned to them.
+	set_cell(room_start_point, 0, Vector2i(3, 8))
+	set_cell(room_end_point, 0, Vector2i(4, 8))
+	
+	completed_generation()
+
+## For now, this just sends a signal that the generating is done for now
+func completed_generation() -> void:
+	pass
 #endregion

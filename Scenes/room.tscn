@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://1ctjkrmdnivt"]
+
+[ext_resource type="Script" uid="uid://bog2fc8m5auy" path="res://Scenes/room.gd" id="1_mbine"]
+
+[node name="Room" type="Node2D" unique_id=1528481003]
+script = ExtResource("1_mbine")
