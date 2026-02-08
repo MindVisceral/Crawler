@@ -1,6 +1,15 @@
-extends Node2D
+extends TileMapLayer
 
-@export var tilemaplayer: TileMapLayer
+#region Exports
+@export_group("Room access")
+## 
+## Maximum is the same as room_width/height, but that must be checked on _ready()
+@export var room_start_point: Vector2 = Vector2.ZERO
+@export var room_end_point: Vector2 = Vector2.ZERO
+## Points can be placed randomly on the map
+@export var random_start_point: bool = false
+@export var random_end_point: bool = false
+@export var random_access_points: bool = false
 
 
 @export_group("Room seeding")
@@ -14,7 +23,7 @@ extends Node2D
 @export_range(0, 100, 1) var fill_percent: int = 45
 ## Amount of smoothing iterations before room is done
 @export_range(0, 10, 1) var smoothing_iterations: int = 4
-## 
+## Not used???
 @export_range(5, 100, 1) var min_room_size: int = 50
 ## Amount of empty space around given room's entry and exit points
 @export_range(1, 10, 1) var access_size: int = 5;
@@ -29,7 +38,9 @@ extends Node2D
 @export_group("Miscellaneous")
 ## Should a given room have closed edges?
 @export var should_be_closed: bool = true
+#endregion
 
+#region Variables
 ## Kinds of tiles
 const WALL_TILE: int = 0
 const EMPTY: int = -1
@@ -40,16 +51,67 @@ var room: Dictionary = {}
 var start_point: Vector2
 ## End position in given room
 var end_point: Vector2
-
+#endregion
 
 func _ready() -> void:
 	## Randomize the seed
 	if randomize_seed == true:
 		room_seed += randi()
 	
-	generate_level(Vector2(2, 5), Vector2(10, 10))
+	attempt_random_access()
+	check_room_access_points()
+	generate_level(room_start_point, room_end_point)
 
+#region Access point functions
+## Depending on the randomization settings, will (or won't) pick ranodm start/end points
+func attempt_random_access() -> void:
+	if random_start_point:
+		room_start_point = randomize_access_point(0, room_width, room_height);
+	elif random_end_point:
+		room_end_point = randomize_access_point(0, room_width, room_height);
+	elif random_access_points:
+		room_start_point = randomize_access_point(0, room_width, room_height);
+		room_end_point = randomize_access_point(0, room_width, room_height);
 
+## Randomize access point Vector with variable width/height
+func randomize_access_point(min_value: int, max_x_value: int, max_y_value: int) -> Vector2:
+	return Vector2(randi_range(min_value, max_x_value), randi_range(min_value, max_y_value))
+
+## Checks if chosen access points are valid and corrects them if they're not
+func check_room_access_points() -> void:
+	## Function will stop and fail after n attempts at randomization
+	var attempts: int = 0
+	
+	## Start point check
+	## X axis outside range; set to 0
+	if room_start_point.x < 0 || room_start_point.x > room_width:
+		room_start_point.x = 0
+	## Y axis outside range; set to 0
+	if room_start_point.y < 0 || room_start_point.y > room_height:
+		room_start_point.y = 0
+	
+	## End point check
+	## X axis outside range; set to maximum
+	if room_end_point.x < 0 || room_end_point.x > room_width:
+		room_end_point.x = room_width
+	## Y axis outside range; set to maximum
+	if room_end_point.y < 0 || room_end_point.y > room_height:
+		room_end_point.y = room_height
+	
+	## Start and end point can't occupy the same position.
+	## (Though this allows them to be right next to each other)
+	## End point will be moved to a random valid point until it works
+	while room_start_point == room_end_point && attempts < 16:
+		room_end_point.x = randi_range(0, room_width)
+		room_end_point.y = randi_range(0, room_height)
+		attempts += 1;
+	
+	## Error message in case of failure
+	if attempts >= 16:
+		push_error("Failed to randomize valid access points after %d attempts" % attempts)
+#endregion
+
+#region Room generation
 ## Generates level comprised of rooms
 func generate_level(start: Vector2, end: Vector2) -> void:
 	## Attempts at generation
@@ -87,8 +149,8 @@ func generate_level(start: Vector2, end: Vector2) -> void:
 	if should_be_closed == true:
 		force_walls()
 	
-	## Get the generated room and apply it to a TileMap
-	apply_to_tilemap()
+	## Get the generated room and apply it to a TileSet
+	apply_to_tileset()
 
 
 ## Generates a room randomly
@@ -236,17 +298,20 @@ func force_walls() -> void:
 	for y in range(room_height):
 		room[Vector2(0, y)] = true
 		room[Vector2(room_width - 1, y)] = true
+#endregion
 
-func apply_to_tilemap() -> void:
+#region Apply generated room to tileset
+func apply_to_tileset() -> void:
 	var pos: Vector2 = Vector2(0, 0)
 	
-	## 
+	## Applying tileset tiles to each generated position
 	for x in range(room_width):
 		for y in range(room_height):
 			pos = Vector2(x, y)
 			## Wall tile
 			if room[pos] == true:
-				tilemaplayer.set_cell(pos, 0, Vector2i(0, randi_range(0, 1)))
+				set_cell(pos, 0, Vector2i(randi_range(0, 8), randi_range(1, 3)))  ## Random stone tile on x0-11,y1-3
 			## Empty tile
 			else:
-				tilemaplayer.set_cell(pos, -1)
+				set_cell(pos, 0, Vector2i(0, 25))  ## Black tile on index x0,y26
+#endregion

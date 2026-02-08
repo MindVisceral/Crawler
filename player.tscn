@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://bovwus4c3q7bh"]
+
+[ext_resource type="Texture2D" uid="uid://b7dvb7h5gmyv6" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_1.png" id="1_hqtel"]
+[ext_resource type="Script" uid="uid://b54s2y38c32j8" path="res://player.gd" id="1_sweqy"]
+[ext_resource type="Texture2D" uid="uid://dvnm7ru5o541a" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_2.png" id="2_sweqy"]
+[ext_resource type="Texture2D" uid="uid://fw12y3soa20t" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_3.png" id="3_2hs0m"]
+[ext_resource type="Texture2D" uid="uid://c0qgpntjw6n7s" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_4.png" id="4_1jxqw"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dw050"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_hqtel")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_sweqy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_2hs0m")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_1jxqw")
+}],
+"loop": true,
+"name": &"default",
+"speed": 4.0
+}]
+
+[node name="Player" type="Node2D" unique_id=49446474]
+script = ExtResource("1_sweqy")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=1124486299]
+sprite_frames = SubResource("SpriteFrames_dw050")
+frame_progress = 0.35290542
+
+[node name="Scripts" type="Node" parent="." unique_id=1184639701]
+
+[node name="StateManager" type="Node" parent="Scripts" unique_id=64321632]
