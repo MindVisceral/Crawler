@@ -81,27 +81,27 @@ func check_room_access_points() -> void:
 	var attempts: int = 0
 	
 	## Start point check
-	## X axis outside range; set to 0
-	if room_start_point.x < 0 || room_start_point.x > room_width:
-		room_start_point.x = 0
-	## Y axis outside range; set to 0
-	if room_start_point.y < 0 || room_start_point.y > room_height:
-		room_start_point.y = 0
+	## X axis outside range; set to 1
+	if room_start_point.x <= 0 || room_start_point.x >= room_width:
+		room_start_point.x = 1
+	## Y axis outside range; set to 1
+	if room_start_point.y <= 0 || room_start_point.y >= room_height:
+		room_start_point.y = 1
 	
 	## End point check
 	## X axis outside range; set to maximum
-	if room_end_point.x < 0 || room_end_point.x > room_width:
-		room_end_point.x = room_width
+	if room_end_point.x <= 0 || room_end_point.x >= room_width:
+		room_end_point.x = room_width-1
 	## Y axis outside range; set to maximum
-	if room_end_point.y < 0 || room_end_point.y > room_height:
-		room_end_point.y = room_height
+	if room_end_point.y <= 0 || room_end_point.y >= room_height:
+		room_end_point.y = room_height-1
 	
 	## Start and end point can't occupy the same position.
 	## (Though this allows them to be right next to each other)
 	## End point will be moved to a random valid point until it works
 	while room_start_point == room_end_point && attempts < 16:
-		room_end_point.x = randi_range(0, room_width)
-		room_end_point.y = randi_range(0, room_height)
+		room_end_point.x = randi_range(1, room_width-1)
+		room_end_point.y = randi_range(1, room_height-1)
 		attempts += 1;
 	
 	## Error message in case of failure
@@ -109,7 +109,7 @@ func check_room_access_points() -> void:
 		push_error("Failed to randomize valid access points after %d attempts" % attempts)
 #endregion
 
-#region Room generation
+#region BASE Room generation (includes: start, end, walls)
 ## Generates level comprised of rooms
 func generate_level(start: Vector2, end: Vector2) -> void:
 	## Attempts at generation

@@ -2,9 +2,6 @@ extends Node2D
 class_name Player
 
 #region Variables
-## Tile size in pixels
-var tile_size: int = 16
-
 ## Possible room movement inputs as Dictionary
 var inputs_dict: Dictionary = {
 	"move_stay": Vector2.ZERO,
@@ -22,7 +19,7 @@ var inputs_dict: Dictionary = {
 
 func _ready() -> void:
 	## Player must be snapped to closest tile
-	position = position.snapped(Vector2.ONE * tile_size)
+	position = position.snapped(Vector2.ONE * Singleton.TILE_SIZE)
 
 ## Player Input for movement
 func _unhandled_input(event: InputEvent) -> void:
@@ -42,8 +39,8 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Attemp to move the Player in a given direction
 func move(move_dir) -> void:
 	## First, check for any obstacles in chosen neighbouring tile and don't move if there are any
-	%ObstacleCast.target_position = inputs_dict[move_dir] * tile_size
+	%ObstacleCast.target_position = inputs_dict[move_dir] * Singleton.TILE_SIZE
 	%ObstacleCast.force_raycast_update()
 	if !%ObstacleCast.is_colliding():
-		position += inputs_dict[move_dir] * tile_size
+		position += inputs_dict[move_dir] * Singleton.TILE_SIZE
 #endregion

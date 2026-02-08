@@ -1238,7 +1238,8 @@ tile_set = SubResource("TileSet_3dryh")
 script = ExtResource("2_wrm1d")
 random_access_points = true
 randomize_seed = true
-room_width = 8
-room_height = 8
+room_width = 12
+room_height = 12
+should_be_closed = false
 
 [node name="Player" parent="." unique_id=49446474 instance=ExtResource("3_wrm1d")]
