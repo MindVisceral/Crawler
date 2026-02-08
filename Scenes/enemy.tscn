@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://bybdxc1b2a0pl"]
+
+[ext_resource type="Script" uid="uid://c3psc641l0mnc" path="res://Scenes/enemy.gd" id="1_epg4t"]
+[ext_resource type="Texture2D" uid="uid://c84cf400frule" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skeleton2/v2/skeleton2_v2_1.png" id="1_iifgy"]
+[ext_resource type="Texture2D" uid="uid://b3v8ibvh61e5c" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skeleton2/v2/skeleton2_v2_2.png" id="2_epg4t"]
+[ext_resource type="Texture2D" uid="uid://qn7m1267yy8j" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skeleton2/v2/skeleton2_v2_3.png" id="3_3yqyl"]
+[ext_resource type="Texture2D" uid="uid://dvo2v6elmdre5" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skeleton2/v2/skeleton2_v2_4.png" id="4_wujgv"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_hb8ge"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_iifgy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_epg4t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_3yqyl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_wujgv")
+}],
+"loop": true,
+"name": &"default",
+"speed": 6.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_iifgy"]
+size = Vector2(14, 14)
+
+[node name="Enemy" type="StaticBody2D" unique_id=1570436374]
+z_index = 1
+collision_layer = 4
+collision_mask = 15
+script = ExtResource("1_epg4t")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=1647545470]
+position = Vector2(8, 8)
+sprite_frames = SubResource("SpriteFrames_hb8ge")
+frame_progress = 0.32662448
+
+[node name="Collider" type="CollisionShape2D" parent="." unique_id=1258364732]
+position = Vector2(8, 8)
+shape = SubResource("RectangleShape2D_iifgy")
+
+[node name="ObstacleCast" type="RayCast2D" parent="." unique_id=1147686673]
+position = Vector2(8, 8)
+target_position = Vector2(16, 0)
+
+[node name="Scripts" type="Node" parent="." unique_id=636237015]
+
+[node name="NavAgent" type="NavigationAgent2D" parent="." unique_id=1076094961]
+debug_enabled = true

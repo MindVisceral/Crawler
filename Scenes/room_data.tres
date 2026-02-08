@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="RoomData" format=3 uid="uid://cx0o8twsvxp5v"]
+
+[ext_resource type="Script" uid="uid://bk8cybkw0nu8q" path="res://Scenes/room_data_script.gd" id="1_1l0oh"]
+
+[resource]
+script = ExtResource("1_1l0oh")

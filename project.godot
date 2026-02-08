@@ -92,9 +92,14 @@ move_down_floor={
 [layer_names]
 
 2d_physics/layer_1="Terrain"
+2d_navigation/layer_1="Floor"
 2d_physics/layer_2="Player"
+2d_navigation/layer_2="Player"
 2d_physics/layer_3="Enemy"
+2d_navigation/layer_3="Enemy"
 2d_physics/layer_4="Object"
+2d_navigation/layer_4="Terrain"
+2d_navigation/layer_5="Obstacles"
 
 [physics]
 

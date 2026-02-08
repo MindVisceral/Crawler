@@ -1,5 +1,8 @@
-extends TileMapLayer
+extends Node
 class_name RoomGenerator
+
+@export var RoomTileset: TileMapLayer
+@export var EnemyFillerScript: RoomEnemyFiller
 
 #region Exports
 @export_group("Room access")
@@ -41,14 +44,9 @@ class_name RoomGenerator
 @export var should_be_closed: bool = true
 #endregion
 
-#region Variables
-## Kinds of tiles
-const WALL_TILE: int = 0
-const EMPTY: int = -1
-
-## Stores a given generated room
-var room: Dictionary = {}
-#endregion
+## Stores a given generated room in form of tiles:
+## contains a tile's position and whether it's empty or filled
+var room: Dictionary[Vector2, bool] = {}
 
 func _ready() -> void:
 	## Randomize the seed
@@ -175,7 +173,7 @@ func smooth_room() -> void:
 	var pos: Vector2 = Vector2(0, 0)
 	
 	## New room, result of smoothing
-	var new_room: Dictionary = {}
+	var new_room: Dictionary[Vector2, bool] = {}
 	for x in range(room_width):
 		for y in range(room_height):
 			pos = Vector2(x, y)
@@ -308,18 +306,32 @@ func apply_to_tileset() -> void:
 			pos = Vector2(x, y)
 			## Wall tile
 			if room[pos] == true:
-				set_cell(pos, 0, Vector2i(randi_range(0, 8), randi_range(1, 3)))  ## Random stone tile on x0-11,y1-3
+				RoomTileset.set_cell(pos, 0, Vector2i(randi_range(0, 8), randi_range(1, 3)))  ## Random stone tile on x0-11,y1-3
 			## Empty tile
 			else:
-				set_cell(pos, 0, Vector2i(0, 25))  ## Black tile on index x0,y26
+				RoomTileset.set_cell(pos, 0, Vector2i(0, 25))  ## Black tile on index x0,y26
 	
 	## Start and End points get special Tiles assigned to them.
-	set_cell(room_start_point, 0, Vector2i(3, 8))
-	set_cell(room_end_point, 0, Vector2i(4, 8))
+	RoomTileset.set_cell(room_start_point, 0, Vector2i(3, 8))
+	RoomTileset.set_cell(room_end_point, 0, Vector2i(4, 8))
 	
 	completed_generation()
-
-## For now, this just sends a signal that the generating is done for now
-func completed_generation() -> void:
-	pass
 #endregion
+
+## Pass on important level information to the next Script in the chain
+## Also used by the Game script to determine when to start the game proper
+func completed_generation() -> void:
+	## Record room data and send it over
+	var new_room_data: RoomData = RoomData.new()
+	new_room_data.room_seed = room_seed
+	new_room_data.fill_percent = fill_percent
+	new_room_data.room_start_point = room_start_point
+	new_room_data.room_end_point = room_end_point
+	new_room_data.access_size = access_size
+	new_room_data.room_width = room_width
+	new_room_data.room_height = room_height
+	## Most important bit of information, terrain we just generated
+	new_room_data.room_terrain = room
+	
+	EnemyFillerScript.room_data = new_room_data
+	EnemyFillerScript.start_filling_room()

@@ -5,5 +5,6 @@
 [node name="EXAMPLE" type="Node2D" unique_id=703621374]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1420288802]
+z_index = 100
 position = Vector2(8, 8)
 texture = ExtResource("1_2jas5")
