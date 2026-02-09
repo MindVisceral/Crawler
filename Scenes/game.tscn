@@ -1250,6 +1250,7 @@ script = ExtResource("2_wrm1d")
 RoomTileset = NodePath("../../RoomTileset")
 EnemyFillerScript = NodePath("../RoomEnemyFiller")
 random_access_points = true
+fill_percent = 1
 access_size = 2
 room_width = 8
 room_height = 8
@@ -1260,6 +1261,7 @@ script = ExtResource("3_wowpa")
 RoomTileset = NodePath("../../RoomTileset")
 enemy_parent_node = NodePath("../../Entities")
 enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
+enemy_amount = 1
 
 [node name="RoomTileset" type="TileMapLayer" parent="." unique_id=2010401026]
 tile_set = SubResource("TileSet_3dryh")

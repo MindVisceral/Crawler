@@ -5,7 +5,8 @@ class_name RoomEnemyFiller
 ## Tileset (unused!)
 @export var RoomTileset: TileMapLayer
 
-## Reference to the Node the Enemies will be children of
+## Reference to the Node the Enemies will be children of.
+## This Node also knows all Entities, so it can be used for pathfinding's targetting
 @export var enemy_parent_node: Node2D
 
 
@@ -55,4 +56,7 @@ func start_filling_room() -> void:
 		var enemy: Enemy = enemies.pick_random()
 		enemies.erase(enemy)
 		enemy_parent_node.add_child(enemy)
-		enemy.place_enemy(tile)
+		## Enemy added to Singleton EntityManager list of Entities
+		EntityManager.entities.append(enemy)
+		## Enemy setup
+		enemy.move_enemy_to_tile(tile)

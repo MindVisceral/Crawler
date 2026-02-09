@@ -1,4 +1,4 @@
-extends Node2D
+extends StaticBody2D
 class_name Player
 
 #region Variables
@@ -18,6 +18,10 @@ var inputs_dict: Dictionary = {
 
 
 func _ready() -> void:
+	## Player must be added to the Array of all Entities present in a Room.
+	## Since Player is always present, this is only necessary once (for now, this could change!)
+	EntityManager.entities.append(self)
+	
 	## Player must be snapped to closest tile
 	position = position.snapped(Vector2.ONE * Singleton.TILE_SIZE)
 
