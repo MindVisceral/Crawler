@@ -56,7 +56,7 @@ func perform_turn() -> void:
 func end_turn() -> void:
 	is_entity_turn = false
 	TurnManager.add_entity_to_turn_queue(self)
-	TurnManager.report_turn_finished()
+	TurnManager.report_turn_finished()  ## This must be called last
 #endregion
 
 #region Entity pathfinding functions
@@ -101,6 +101,7 @@ func find_next_step_to_goal(next_path_pos: Vector2) -> Vector2:
 #region Entity movement
 ## Place this Entity on the given *tile* position, if there aren't any obstacles there
 func move_entity_to_tile(pos: Vector2) -> void:
+	print("CALLED ENTITY MOVEMENT FOR ", self)
 	## Passed 'pos' position is in tile coordinates, so it has to be adjusted
 	## so the raycast will fire and see objects locally, in relation to Entity space
 	var ray_target_pos: Vector2 = \
@@ -116,4 +117,12 @@ func move_entity_to_tile(pos: Vector2) -> void:
 	
 	## No matter if it succeeded, movement ends a Turn
 	end_turn()
+#endregion
+
+#region Entity setup
+## Places the given Entity at the Tile's provided position.
+## Doesn't end the Entity's turn.
+## DOESN'T ACCOUNT FOR OBSTACLES, OTHER SCRIPTS SHOULD HANDLE THAT
+func place_entity_at_tile(pos: Vector2) -> void:
+	position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
 #endregion

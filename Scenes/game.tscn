@@ -1253,8 +1253,8 @@ GameScript = NodePath("../..")
 random_access_points = true
 fill_percent = 1
 access_size = 2
-room_width = 8
-room_height = 8
+room_width = 12
+room_height = 12
 should_be_closed = false
 
 [node name="RoomEnemyFiller" type="Node" parent="RoomGenScripts" unique_id=1869933733 node_paths=PackedStringArray("RoomTileset", "enemy_parent_node")]
@@ -1262,7 +1262,8 @@ script = ExtResource("3_wowpa")
 RoomTileset = NodePath("../../RoomTileset")
 enemy_parent_node = NodePath("../../Entities")
 enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
-enemy_amount = 1
+enemy_amount = 5
+random_amount_multiplier = null
 
 [node name="RoomTileset" type="TileMapLayer" parent="." unique_id=2010401026]
 tile_set = SubResource("TileSet_3dryh")

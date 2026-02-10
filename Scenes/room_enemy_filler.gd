@@ -62,7 +62,7 @@ func begin_filling_room() -> void:
 		## Enemy added to Singleton EntityManager list of Entities
 		EntityManager.entities.append(enemy)
 		## Enemy setup
-		enemy.move_entity_to_tile(tile)
+		enemy.place_entity_at_tile(tile)
 	
 	completed_filling_room()
 

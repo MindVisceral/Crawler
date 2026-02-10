@@ -18,11 +18,11 @@ var room_data: RoomData
 
 func _ready() -> void:
 	## When room generator sends a signal that it's done generating,
-	## the Player is moved to the room's entrance, if it's available
+	## it returns a RoomData Resource with information about the Room's structure.
+	## The Player is moved to the room's entrance
 	room_generator.begin_generating()
 	await room_generator.completed_generation
-	player.position = room_generator.room_start_point * Singleton.TILE_SIZE
-	## room_generator returns a RoomData Resource with information about the Room's structure.
+	player.place_entity_at_tile(room_generator.room_start_point)
 	
 	## Room generator calls room enemy filler to start filing the room with Enemies
 	## Wait for that to finish

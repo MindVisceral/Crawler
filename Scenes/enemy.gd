@@ -33,6 +33,11 @@ func perform_turn() -> void:
 		return
 	## Turn is started by finding a a path to the Entity's goal, which included finding this goal
 	pathfind()
+
+## Called when the Entity takes a turn-ending action, like moving or attacking.
+## By default, successfully ending a Turn asks the TurnManager for another Turn
+func end_turn() -> void:
+	super()
 #endregion
 
 #region Enemy pathfinding functions
@@ -45,7 +50,7 @@ func pathfind() -> void:
 func pick_goal_node() -> void:
 	super()
 	## By default, just pick the Player, if present, from all Entities in the Room
-	for entity: StaticBody2D in EntityManager.entities:  ## Array of Entities from EntityManager
+	for entity: Entity in EntityManager.entities:  ## Array of Entities from EntityManager
 		if entity is Player:
 			## Set as target for pathfinding
 			goal = entity

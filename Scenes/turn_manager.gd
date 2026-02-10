@@ -10,12 +10,13 @@ var current_turn_user: Entity
 
 ## The game is ready to start.
 func begin_game() -> void:
-	print("TURN QUEUE:", turn_queue)
-	
-	## The Player always gets the very first turn. It must be found and put to the front
+	## The Player always gets the very first turn. Player must be found and put to the front
 	for entity: Entity in turn_queue:
 		if entity is Player:
 			turn_queue.push_front(turn_queue.pop_at(turn_queue.find(entity)))
+	
+	print("STARTING TURN QUEUE:", turn_queue)
+	print("STARTING TURN BELONGS TO: ", current_turn_user)
 	
 	## Now that the game is ready, call the next Entity's turn.
 	next_entity_begin_turn()
@@ -27,12 +28,16 @@ func next_entity_begin_turn() -> void:
 		current_turn_user = turn_queue.front()
 		## If an Entity wants to have another turn, it will have to request one
 		turn_queue.erase(current_turn_user)
+		print("TURN QUEUE:", turn_queue)
+		print("CURRENT TURN BELONGS TO: ", current_turn_user)
 		current_turn_user.perform_turn()
 
 ## If a given Entity's turn is finished, it must call this function so that the game may proceed
 func report_turn_finished() -> void:
+	print(current_turn_user, " HAS ENDED ITS TURN")
 	next_entity_begin_turn()
 
 ## This function is called when an Entity must be added to the Turn Queue
 func add_entity_to_turn_queue(entity: Entity) -> void:
+	print("ADDED ", entity, " TO TURN QUEUE")
 	turn_queue.append(entity)
