@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://xu6sgg04qsjl"]
+
+[ext_resource type="Script" uid="uid://bqrihlmsun00b" path="res://Scenes/entity.gd" id="1_pimh3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_iifgy"]
+size = Vector2(14, 14)
+
+[node name="Entity" type="StaticBody2D" unique_id=1570436374 node_paths=PackedStringArray("nav_agent")]
+z_index = 1
+collision_layer = 4
+collision_mask = 15
+script = ExtResource("1_pimh3")
+nav_agent = NodePath("NavAgent")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=1647545470]
+z_index = 10
+position = Vector2(8, 8)
+
+[node name="Collider" type="CollisionShape2D" parent="." unique_id=1258364732]
+position = Vector2(8, 8)
+shape = SubResource("RectangleShape2D_iifgy")
+
+[node name="ObstacleCast" type="RayCast2D" parent="." unique_id=1147686673]
+unique_name_in_owner = true
+position = Vector2(8, 8)
+target_position = Vector2(16, 0)
+collision_mask = 15
+collide_with_areas = true
+
+[node name="Scripts" type="Node" parent="." unique_id=636237015]
+
+[node name="NavAgent" type="NavigationAgent2D" parent="." unique_id=1076094961]
+path_desired_distance = 1.0
+target_desired_distance = 16.0
+path_max_distance = 16.0
+debug_enabled = true
