@@ -2,11 +2,12 @@
 
 [ext_resource type="Texture2D" uid="uid://b7dvb7h5gmyv6" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_1.png" id="1_hqtel"]
 [ext_resource type="Script" uid="uid://b54s2y38c32j8" path="res://Scenes/player.gd" id="1_sweqy"]
+[ext_resource type="PackedScene" uid="uid://xu6sgg04qsjl" path="res://entity.tscn" id="1_x3wgy"]
 [ext_resource type="Texture2D" uid="uid://dvnm7ru5o541a" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_2.png" id="2_sweqy"]
 [ext_resource type="Texture2D" uid="uid://fw12y3soa20t" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_3.png" id="3_2hs0m"]
 [ext_resource type="Texture2D" uid="uid://c0qgpntjw6n7s" path="res://Assets/DungeonTileset2/Character_animation/monsters_idle/skull/v2/skull_v2_4.png" id="4_1jxqw"]
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_dw050"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_3smsa"]
 animations = [{
 "frames": [{
 "duration": 1.0,
@@ -23,37 +24,17 @@ animations = [{
 }],
 "loop": true,
 "name": &"default",
-"speed": 4.0
+"speed": 3.0
 }]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_fkybt"]
-size = Vector2(14, 14)
-
-[node name="Player" type="StaticBody2D" unique_id=1786135226]
-z_index = 1
-collision_layer = 2
-collision_mask = 15
+[node name="Player" unique_id=1570436374 instance=ExtResource("1_x3wgy")]
 script = ExtResource("1_sweqy")
 
-[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=1124486299]
-position = Vector2(8, 8)
-sprite_frames = SubResource("SpriteFrames_dw050")
-frame_progress = 0.88337743
+[node name="Sprite" parent="." index="0" unique_id=1647545470]
+sprite_frames = SubResource("SpriteFrames_3smsa")
+autoplay = "default"
+frame_progress = 0.92598903
 
-[node name="Collider" type="CollisionShape2D" parent="." unique_id=2049616393]
-position = Vector2(8, 8)
-shape = SubResource("RectangleShape2D_fkybt")
-
-[node name="ObstacleCast" type="RayCast2D" parent="." unique_id=1949455070]
-unique_name_in_owner = true
-position = Vector2(8, 8)
-target_position = Vector2(16, 0)
-collision_mask = 13
-
-[node name="Scripts" type="Node" parent="." unique_id=1184639701]
-
-[node name="StateManager" type="Node" parent="Scripts" unique_id=64321632]
-
-[node name="Camera" type="Camera2D" parent="." unique_id=1574922815]
+[node name="Camera" type="Camera2D" parent="." index="5" unique_id=680646731]
 position = Vector2(8, 8)
 zoom = Vector2(4, 4)

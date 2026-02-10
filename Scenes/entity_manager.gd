@@ -5,3 +5,7 @@ extends Node2D
 
 ## Dynamic Array of all living Entities currently present in the Room
 var entities: Array[StaticBody2D]
+
+## Assigns a unique ID to a given Enemy
+func assign_id_to_entity() -> void:
+	pass

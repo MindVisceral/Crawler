@@ -27,6 +27,12 @@ func _physics_process(delta: float) -> void:
 func perform_turn() -> void:
 	super()
 	
+	## Navigation doesn't happen without these circumstances being right
+	if NavigationServer2D.map_get_iteration_id(nav_agent.get_navigation_map()) == 0:
+		print("No navmap")
+		return
+	## Turn is started by finding a a path to the Entity's goal, which included finding this goal
+	pathfind()
 #endregion
 
 #region Enemy pathfinding functions

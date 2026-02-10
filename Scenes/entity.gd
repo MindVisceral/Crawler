@@ -4,9 +4,9 @@ class_name Entity
 ## Reference to this Entity's NavigationAgent
 @export var nav_agent: NavigationAgent2D
 
-#region IDs
-## ID of this specific Entity(, assigned by the Entity manager - yet to be made)
-var entity_id: int = 0
+#region Turn variables
+## All Entities are capable of having a Turn. This boolean is switched when it's this Entity's turn.
+var is_entity_turn: bool = false
 #endregion
 
 #region Pathfinding variables
@@ -48,13 +48,15 @@ func _physics_process(delta: float) -> void:
 #region Entity Turn functions
 ## All Entity turns are called in order by a Queue in TurnManager Autoload
 func perform_turn() -> void:
-	## Navigation doesn't happen without these circumstances being right
-	if NavigationServer2D.map_get_iteration_id(nav_agent.get_navigation_map()) == 0:
-		print("No navmap")
-		return
-	## Turn is started by finding a a path to the Entity's goal, which included finding this goal
-	pathfind()
-	
+	## It's this Entity's Turn now, allow it to take an action
+	is_entity_turn = true
+
+## Called when the Entity takes a turn-ending action, like moving or attacking.
+## By default, successfully ending a Turn asks the TurnManager for another Turn
+func end_turn() -> void:
+	is_entity_turn = false
+	TurnManager.add_entity_to_turn_queue(self)
+	TurnManager.report_turn_finished()
 #endregion
 
 #region Entity pathfinding functions
@@ -110,5 +112,8 @@ func move_entity_to_tile(pos: Vector2) -> void:
 	if !%ObstacleCast.is_colliding():
 		position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
 	else:
-		push_error("CAN'T MOVE ENTITY(ID: ", self.entity_id, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
+		push_error("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
+	
+	## No matter if it succeeded, movement ends a Turn
+	end_turn()
 #endregion

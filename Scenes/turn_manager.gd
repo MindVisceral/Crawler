@@ -31,7 +31,7 @@ func next_entity_begin_turn() -> void:
 
 ## If a given Entity's turn is finished, it must call this function so that the game may proceed
 func report_turn_finished() -> void:
-	pass
+	next_entity_begin_turn()
 
 ## This function is called when an Entity must be added to the Turn Queue
 func add_entity_to_turn_queue(entity: Entity) -> void:
