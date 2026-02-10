@@ -1,4 +1,4 @@
-extends StaticBody2D
+extends Entity
 class_name Player
 
 #region Variables
@@ -30,7 +30,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	## Match Player input to input direction Dictionary and attempt to move in that direction
 	for move_dir in inputs_dict.keys():
 		if event.is_action_pressed(move_dir):
-			move(move_dir)
+			move_manually(move_dir)
 	
 	## Move up/down a floor if possible
 	if event.is_action_pressed("move_up_floor"):
@@ -41,7 +41,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 #region Movement
 ## Attemp to move the Player in a given direction
-func move(move_dir) -> void:
+func move_manually(move_dir) -> void:
 	## First, check for any obstacles in chosen neighbouring tile and don't move if there are any
 	%ObstacleCast.target_position = inputs_dict[move_dir] * Singleton.TILE_SIZE
 	%ObstacleCast.force_raycast_update()

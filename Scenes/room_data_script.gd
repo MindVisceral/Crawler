@@ -21,6 +21,6 @@ class_name RoomData
 #region Variables
 ## Stores terrain generated in a Room
 var room_terrain: Dictionary[Vector2, bool] = {}
-## Stores Enemies placed in a Room
-var room_enemies: Dictionary[int, int] = {}
+## Stores Enemies' position placed in a Room
+var room_enemies: Dictionary[Vector2, Entity] = {}
 #endregion

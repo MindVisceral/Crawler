@@ -2,7 +2,7 @@ extends Node
 class_name RoomGenerator
 
 @export var RoomTileset: TileMapLayer
-@export var EnemyFillerScript: RoomEnemyFiller
+@export var GameScript: GameManager
 
 #region Exports
 @export_group("Room access")
@@ -48,8 +48,8 @@ class_name RoomGenerator
 ## contains a tile's position and whether it's empty or filled
 var room: Dictionary[Vector2, bool] = {}
 
-func _ready() -> void:
-	## Randomize the seed
+func begin_generating() -> void:
+		## Randomize the seed
 	if randomize_seed == true:
 		room_seed += randi()
 	
@@ -318,8 +318,7 @@ func apply_to_tileset() -> void:
 	completed_generation()
 #endregion
 
-## Pass on important level information to the next Script in the chain
-## Also used by the Game script to determine when to start the game proper
+## Pass on important level information to the Game script so the next step may begin
 func completed_generation() -> void:
 	## Record room data and send it over
 	var new_room_data: RoomData = RoomData.new()
@@ -333,5 +332,5 @@ func completed_generation() -> void:
 	## Most important bit of information, terrain we just generated
 	new_room_data.room_terrain = room
 	
-	EnemyFillerScript.room_data = new_room_data
-	EnemyFillerScript.start_filling_room()
+	## Pass the information, the next step may begin
+	GameScript.retrieve_room_data(new_room_data)
