@@ -19,6 +19,20 @@ var goal: Node2D = self
 var next_pos: Vector2
 #endregion
 
+func _ready() -> void:
+	## Set NavAgent's pathfinding settings to work for any TILE_SIZE (which is 16x16 by default).
+	## This might not work properly for unevenly-sized tiles (ex. 12x16)
+	##
+	## This should be the minimal viable value possible, ideally only a pixel or two
+	nav_agent.path_desired_distance = Singleton.TILE_SIZE / 16
+	## Ideal distance from Enemy to goal. Since the Enemy moves on a perfect grid,
+	## this distance should be a multiple of TILE_SIZE.
+	## This should depend on the Enemy's AI; by default, the Enemy wants
+	## to be as close as possible to its goal (that is, 1 tile away) 
+	nav_agent.target_desired_distance = Singleton.TILE_SIZE
+	## How far away the Enemy may stray from the calculated path. Since the Enemy is tied to a grid,
+	## they shouldn't stray from the path at all, if possible. Hence, one Tile away from path.
+	nav_agent.path_max_distance = Singleton.TILE_SIZE
 
 func _physics_process(delta: float) -> void:
 	## Navigation doesn't happen without these circumstances being right
