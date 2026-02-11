@@ -3,16 +3,16 @@ class_name Player
 
 #region Variables
 ## Possible room movement inputs as Dictionary
-var inputs_dict: Dictionary = {
-	"move_stay": Vector2.ZERO,
-	"move_up": Vector2.UP,
-	"move_down": Vector2.DOWN,
-	"move_right": Vector2.RIGHT,
-	"move_left": Vector2.LEFT,
-	"move_up_right": Vector2(1, -1),
-	"move_down_right": Vector2(1, 1),
-	"move_up_left": Vector2(-1, -1),
-	"move_down_left": Vector2(-1, 1)
+var inputs_dict: Dictionary[String, Vector2i] = {
+	"move_stay": Vector2i.ZERO,
+	"move_up": Vector2i.UP,
+	"move_down": Vector2i.DOWN,
+	"move_right": Vector2i.RIGHT,
+	"move_left": Vector2i.LEFT,
+	"move_up_right": Vector2i(1, -1),
+	"move_down_right": Vector2i(1, 1),
+	"move_up_left": Vector2i(-1, -1),
+	"move_down_left": Vector2i(-1, 1)
 }
 #endregion
 
@@ -69,7 +69,7 @@ func pick_goal_node() -> void:
 	pass  ## Player movement AI goes here!
 
 ## Determine next step towards the goal
-func find_next_step_to_goal(next_path_pos: Vector2) -> Vector2:
+func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 	return super(next_path_pos)
 
 #endregion
@@ -77,17 +77,22 @@ func find_next_step_to_goal(next_path_pos: Vector2) -> Vector2:
 #region Player movement
 ## Attemp to move the Player in a given direction
 func move_manually(move_dir) -> void:
-	## First, check for any obstacles in chosen neighbouring tile and don't move if there are any
-	%ObstacleCast.target_position = inputs_dict[move_dir] * Singleton.TILE_SIZE
-	%ObstacleCast.force_raycast_update()
-	if !%ObstacleCast.is_colliding():
-		position += inputs_dict[move_dir] * Singleton.TILE_SIZE
+	## First, get the Tile to which the Player will move to
+	var target_tile: Vector2i = Vector2i(self.position.x / Singleton.TILE_SIZE, \
+	self.position.y / Singleton.TILE_SIZE) \
+		+ inputs_dict[move_dir]
+	
+	## And check if that Tile is empty. If so, move there.
+	if RoomManager.room_data.is_tile_empty(target_tile) == true:
+		## inputs_dict[] dictionary is of Vector2i, so that has to be translated to Vector2
+		position += Vector2(inputs_dict[move_dir].x, inputs_dict[move_dir].y) * Singleton.TILE_SIZE
+		
 		## Successful movement ends the Turn
 		end_turn()
 	
 
 ## Place Player on the given *tile* position, if there aren't any obstacles there
 ## Like any other Entity, used by pathfinding
-func move_entity_to_tile(pos: Vector2) -> void:
+func move_entity_to_tile(pos: Vector2i) -> void:
 	super(pos)
 #endregion

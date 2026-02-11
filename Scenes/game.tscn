@@ -1259,11 +1259,12 @@ should_be_closed = false
 
 [node name="RoomEnemyFiller" type="Node" parent="RoomGenScripts" unique_id=1869933733 node_paths=PackedStringArray("RoomTileset", "GameScript", "enemy_parent_node")]
 script = ExtResource("3_wowpa")
+enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
+enemy_amount = 5
+random_amount_multiplier = null
 RoomTileset = NodePath("../../RoomTileset")
 GameScript = NodePath("../..")
 enemy_parent_node = NodePath("../../Entities")
-enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
-enemy_amount = 128
 
 [node name="RoomTileset" type="TileMapLayer" parent="." unique_id=2010401026]
 tile_set = SubResource("TileSet_3dryh")

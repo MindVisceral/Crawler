@@ -35,6 +35,6 @@ sprite_frames = SubResource("SpriteFrames_3smsa")
 autoplay = "default"
 frame_progress = 0.92598903
 
-[node name="Camera" type="Camera2D" parent="." index="5" unique_id=680646731]
+[node name="Camera" type="Camera2D" parent="." index="4" unique_id=680646731]
 position = Vector2(8, 8)
 zoom = Vector2(4, 4)

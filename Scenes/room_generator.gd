@@ -8,8 +8,8 @@ class_name RoomGenerator
 @export_group("Room access")
 ## 
 ## Maximum is the same as room_width/height, but that must be checked on _ready()
-@export var room_start_point: Vector2 = Vector2.ZERO
-@export var room_end_point: Vector2 = Vector2.ZERO
+@export var room_start_point: Vector2i = Vector2i.ZERO
+@export var room_end_point: Vector2i = Vector2i.ZERO
 ## Points can be placed randomly on the map
 @export var random_start_point: bool = false
 @export var random_end_point: bool = false
@@ -46,7 +46,7 @@ class_name RoomGenerator
 
 ## Stores a given generated room in form of tiles:
 ## contains a tile's position and whether it's empty or filled
-var room: Dictionary[Vector2, bool] = {}
+var room: Dictionary[Vector2i, bool] = {}
 
 func begin_generating() -> void:
 		## Randomize the seed
@@ -70,8 +70,8 @@ func attempt_random_access() -> void:
 			room_end_point = randomize_access_point(0, room_width, room_height);
 
 ## Randomize access point Vector with variable width/height
-func randomize_access_point(min_value: int, max_x_value: int, max_y_value: int) -> Vector2:
-	return Vector2(randi_range(min_value, max_x_value), randi_range(min_value, max_y_value))
+func randomize_access_point(min_value: int, max_x_value: int, max_y_value: int) -> Vector2i:
+	return Vector2i(randi_range(min_value, max_x_value), randi_range(min_value, max_y_value))
 
 ## Checks if chosen access points are valid and corrects them if they're not
 func check_room_access_points() -> void:
@@ -109,7 +109,7 @@ func check_room_access_points() -> void:
 
 #region BASE Room generation (includes: start, end, walls)
 ## Generates level comprised of rooms
-func generate_level(start: Vector2, end: Vector2) -> void:
+func generate_level(start: Vector2i, end: Vector2i) -> void:
 	## Attempts at generation
 	var attempt: int = 0
 	## Check if given map is valid
@@ -153,12 +153,12 @@ func generate_level(start: Vector2, end: Vector2) -> void:
 func init_room(seed_value: int) -> void:
 	seed(seed_value * room_seed)
 	## Position; made a variable as to not create a new one every loop
-	var pos: Vector2 = Vector2(0, 0)
+	var pos: Vector2i = Vector2i(0, 0)
 	
 	## Initial room filling
 	for x in range(room_width):
 		for y in range(room_height):
-			pos = Vector2(x, y)
+			pos = Vector2i(x, y)
 			
 			## Fills the rooms's edges
 			if x == 0 || x == room_width - 1 || y == 0 || y == room_height - 1:
@@ -170,13 +170,13 @@ func init_room(seed_value: int) -> void:
 ## Smooths out the current room
 func smooth_room() -> void:
 	## Position; made a variable as to not create a new one every loop
-	var pos: Vector2 = Vector2(0, 0)
+	var pos: Vector2i = Vector2i(0, 0)
 	
 	## New room, result of smoothing
-	var new_room: Dictionary[Vector2, bool] = {}
+	var new_room: Dictionary[Vector2i, bool] = {}
 	for x in range(room_width):
 		for y in range(room_height):
-			pos = Vector2(x, y)
+			pos = Vector2i(x, y)
 			## Get amount of wall tiles surrounding the given tile
 			var wall_count = get_surrounding_wall_count(pos)
 			
@@ -192,15 +192,15 @@ func smooth_room() -> void:
 	room = new_room
 
 ## Returns o the amount of wall tiles around a tile at given position
-func get_surrounding_wall_count(pos: Vector2) -> int:
+func get_surrounding_wall_count(pos: Vector2i) -> int:
 	var wall_count: int = 0
 	## Check position; made a variable as to not create a new one every loop
-	var check_pos: Vector2 = Vector2(0, 0)
+	var check_pos: Vector2i = Vector2i(0, 0)
 	
 	## Keep in mind: range stops *before* '2', so we get a 3x3 grid
 	for x in range(-1, 2):
 		for y in range(-1, 2):
-			check_pos = Vector2(pos.x + x, pos.y + y)
+			check_pos = Vector2i(pos.x + x, pos.y + y)
 			if check_pos != pos:
 				if room.get(check_pos, true):
 					wall_count += 1
@@ -210,19 +210,19 @@ func get_surrounding_wall_count(pos: Vector2) -> int:
 
 
 ## Make some empty space around given position
-func make_space(center: Vector2, radius: int) -> void:
+func make_space(center: Vector2i, radius: int) -> void:
 	## Position; made a variable as to not create a new one every loop
-	var pos: Vector2 = Vector2(0, 0)
+	var pos: Vector2i = Vector2i(0, 0)
 	
 	## Check for (radius) tiles around the given position
 	for x in range(-radius, radius+1):
 		for y in range(-radius, radius+1):
-			pos = Vector2(center.x + x, center.y + y)
+			pos = Vector2i(center.x + x, center.y + y)
 			## If given surrounding tile is outside of the room's boundaries, it will be ignored
 			if pos.x >= 0 && pos.x < room_width && \
 			pos.y >= 0 && pos.y < room_height:
 				## Otherwise, that tile is made empty
-				if Vector2(x, y).length() <= radius:
+				if Vector2i(x, y).length() <= radius:
 					room[pos] = false
 
 ## Check if there is a valid path between entry and exit points
@@ -230,12 +230,12 @@ func make_space(center: Vector2, radius: int) -> void:
 func check_path_exists() -> bool:
 	var astar = AStar2D.new()
 	## Position; made a variable as to not create a new one every loop
-	var pos: Vector2 = Vector2(0, 0)
+	var pos: Vector2i = Vector2i(0, 0)
 	
 	## Empty tiles are added to A*, wall tiles are ignored
 	for x in range(room_width):
 		for y in range(room_height):
-			pos = Vector2(x, y)
+			pos = Vector2i(x, y)
 			## Given tile is empty, add it to A*'s list
 			if room[pos] == false:
 				var point_id: int = get_point_id(pos)
@@ -244,15 +244,15 @@ func check_path_exists() -> bool:
 	## Tiles that are neighbours will be connected
 	for x in range(room_width):
 		for y in range(room_height):
-			pos = Vector2(x, y)
+			pos = Vector2i(x, y)
 			## Only check for neighbours if a given tile is empty
 			if room[pos] == false:
 				## Get given tile's ID
 				var point_id: int = get_point_id(pos)
 				
 				## Check all orthogontal neighbours and connect this tile to each if it's valid
-				for neighbour in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
-					var next_pos: Vector2 = pos + neighbour
+				for neighbour in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var next_pos: Vector2i = pos + neighbour
 					## Neighbour must be valid
 					if is_valid_empty_pos(next_pos):
 						## A* connection
@@ -271,11 +271,11 @@ func check_path_exists() -> bool:
 	return false
 
 ## Returns given tile's ID, based on the tile's position in the room
-func get_point_id(pos: Vector2) -> int:
+func get_point_id(pos: Vector2i) -> int:
 	return int(pos.x + pos.y * room_width)
 
 ## A given tile can't be at the edge of the room and it must be empty to be an empty tile 
-func is_valid_empty_pos(pos: Vector2) -> bool:
+func is_valid_empty_pos(pos: Vector2i) -> bool:
 	return pos.x >= 0 && pos.x < room_width && \
 	pos.y >= 0 && pos.y < room_height && \
 	room[pos] == false
@@ -287,23 +287,23 @@ func force_walls() -> void:
 	
 	## Create walls on top and bottom edges
 	for x in range(room_width):
-		room[Vector2(x, 0)] = true
-		room[Vector2(x, room_height - 1)] = true
+		room[Vector2i(x, 0)] = true
+		room[Vector2i(x, room_height - 1)] = true
 	
 	## Create walls on left and right edges
 	for y in range(room_height):
-		room[Vector2(0, y)] = true
-		room[Vector2(room_width - 1, y)] = true
+		room[Vector2i(0, y)] = true
+		room[Vector2i(room_width - 1, y)] = true
 #endregion
 
 #region Apply generated room to tileset
 func apply_to_tileset() -> void:
-	var pos: Vector2 = Vector2(0, 0)
+	var pos: Vector2i = Vector2i(0, 0)
 	
 	## Applying tileset tiles to each generated position
 	for x in range(room_width):
 		for y in range(room_height):
-			pos = Vector2(x, y)
+			pos = Vector2i(x, y)
 			## Wall tile
 			if room[pos] == true:
 				RoomTileset.set_cell(pos, 0, Vector2i(randi_range(0, 8), randi_range(1, 3)))  ## Random stone tile on x0-11,y1-3

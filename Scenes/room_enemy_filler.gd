@@ -26,7 +26,7 @@ class_name RoomEnemyFiller
 var room_data: RoomData
 
 ## Dictionary of Enemies placed in the Room
-var enemies_dict: Dictionary[Vector2, Entity] = {}
+var enemies_dict: Dictionary[Vector2i, Entity] = {}
 #endregion
 
 ## The RoomData Resource must be passed on
@@ -45,9 +45,9 @@ func begin_filling_room() -> void:
 	
 	## Find all empty Tiles in the Room and store them in this Array.
 	## Occupation status is stored in the RoomData Resource
-	var empty_tiles: Array[Vector2] = []
-	var room_status: Dictionary[Vector2, bool] = room_data.return_room_tile_occupation_status()
-	for tile: Vector2 in room_status:
+	var empty_tiles: Array[Vector2i] = []
+	var room_status: Dictionary[Vector2i, bool] = room_data.return_tiles_occupation_dict()
+	for tile: Vector2i in room_status:
 		if room_status[tile] == false:
 			empty_tiles.append(tile)
 	
@@ -55,7 +55,7 @@ func begin_filling_room() -> void:
 	## choose one randomly and "place" it there
 	while empty_tiles.is_empty() == false && enemies.is_empty() == false:
 		## Pick an empty tile to be filled with an Enemy
-		var tile: Vector2 = empty_tiles.pick_random()
+		var tile: Vector2i = empty_tiles.pick_random()
 		empty_tiles.erase(tile)
 		
 		## Place a random Enemy on that tile

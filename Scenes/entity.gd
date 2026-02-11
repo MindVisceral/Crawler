@@ -14,7 +14,7 @@ var is_entity_turn: bool = false
 var goal: Node2D = self
 
 ## Next closest position to move to while pathfinding
-var next_pos: Vector2
+var next_pos: Vector2i
 #endregion
 
 func _ready() -> void:
@@ -65,7 +65,7 @@ func pathfind() -> void:
 	## Pick a goal from all Entities present in the Room
 	pick_goal_node()
 	## Find a path to the goal
-	var next_path_pos: Vector2
+	var next_path_pos: Vector2i
 	next_path_pos = find_next_step_to_goal(next_path_pos)
 	
 	## Debugging code for paths, snapping to paths
@@ -88,7 +88,7 @@ func pick_goal_node() -> void:
 	pass  ## Defined by each Entity's specific AI
 
 ## Determine next step towards the goal
-func find_next_step_to_goal(next_path_pos: Vector2) -> Vector2:
+func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 	next_path_pos = nav_agent.get_next_path_position()  ## in non-tile coordinates!
 	next_path_pos = next_path_pos / Singleton.TILE_SIZE  ## Divided to give tile coordinates!
 	next_path_pos = next_path_pos.snapped(Vector2i(1, 1))  ## Snap to nearest full value
@@ -99,19 +99,29 @@ func find_next_step_to_goal(next_path_pos: Vector2) -> Vector2:
 #endregion
 
 #region Entity movement
+### Place this Entity on the given *tile* position, if there aren't any obstacles there
+#func move_entity_to_tile(pos: Vector2) -> void:
+	#print("CALLED ENTITY MOVEMENT FOR ", self)
+	### Passed 'pos' position is in tile coordinates, so it has to be adjusted
+	### so the raycast will fire and see objects locally, in relation to Entity space
+	#var ray_target_pos: Vector2 = \
+		#(pos - (self.position / Singleton.TILE_SIZE)) * Singleton.TILE_SIZE
+	#%ObstacleCast.target_position = ray_target_pos
+	#%ObstacleCast.force_raycast_update()
+	#
+	### If not obstacles are present, allow for the Entity to move there
+	#if !%ObstacleCast.is_colliding():
+		#position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
+	#else:
+		#push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
+	#
+	### No matter if it succeeded, movement ends a Turn
+	#end_turn()
+
 ## Place this Entity on the given *tile* position, if there aren't any obstacles there
-func move_entity_to_tile(pos: Vector2) -> void:
-	print("CALLED ENTITY MOVEMENT FOR ", self)
-	## Passed 'pos' position is in tile coordinates, so it has to be adjusted
-	## so the raycast will fire and see objects locally, in relation to Entity space
-	var ray_target_pos: Vector2 = \
-		(pos - (self.position / Singleton.TILE_SIZE)) * Singleton.TILE_SIZE
-	%ObstacleCast.target_position = ray_target_pos
-	%ObstacleCast.force_raycast_update()
-	
-	## If not obstacles are present, allow for the Entity to move there
-	if !%ObstacleCast.is_colliding():
-		position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
+func move_entity_to_tile(pos: Vector2i) -> void:
+	if RoomManager.room_data.is_tile_empty(pos):
+		position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
 	else:
 		push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
 	
@@ -123,6 +133,6 @@ func move_entity_to_tile(pos: Vector2) -> void:
 ## Places the given Entity at the Tile's provided position.
 ## Doesn't end the Entity's turn.
 ## DOESN'T ACCOUNT FOR OBSTACLES, OTHER SCRIPTS SHOULD HANDLE THAT
-func place_entity_at_tile(pos: Vector2) -> void:
-	position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
+func place_entity_at_tile(pos: Vector2i) -> void:
+	position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
 #endregion

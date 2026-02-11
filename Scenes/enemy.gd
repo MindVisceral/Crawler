@@ -58,13 +58,13 @@ func pick_goal_node() -> void:
 			break  ## Stop looking for more goals
 
 ## Determine next step towards the goal
-func find_next_step_to_goal(next_path_pos: Vector2) -> Vector2:
+func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 	return super(next_path_pos)
 
 #endregion
 
 #region Enemy movement
 ## Place this Enemy on the given *tile* position, if there aren't any obstacles there
-func move_entity_to_tile(pos: Vector2) -> void:
+func move_entity_to_tile(pos: Vector2i) -> void:
 	super(pos)
 #endregion
