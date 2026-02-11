@@ -1,4 +1,4 @@
-extends Node2D
+extends Node
 
 ## This script keeps track of all Entities present on in the given Room to allow
 ## them access to other such Entities

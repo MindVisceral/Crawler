@@ -23,6 +23,13 @@ func begin_game() -> void:
 
 ## Tells the next Entity in Queue to begin its turn.
 func next_entity_begin_turn() -> void:
+	## Since movement is based on RayCasts, one frame must be processed between turns.
+	## Without this, all the turns are carried out in the same frame, which causes bugs.
+	## Unfortunately, this will cause lag with enough Entities taking their turns.
+	## At 60FPS, that's one second of delay with only 60 Entities
+	## Changing the whole system to work on data instead of collisions would be a better fix.
+	await get_tree().process_frame
+	## Actually begin the turn now.
 	if !turn_queue.is_empty():
 		## Take the Entity from the front of the Queue and remove it.
 		current_turn_user = turn_queue.front()
