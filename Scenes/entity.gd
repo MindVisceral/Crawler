@@ -113,7 +113,7 @@ func move_entity_to_tile(pos: Vector2) -> void:
 	if !%ObstacleCast.is_colliding():
 		position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
 	else:
-		push_error("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
+		push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
 	
 	## No matter if it succeeded, movement ends a Turn
 	end_turn()

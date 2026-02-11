@@ -261,7 +261,7 @@ func check_path_exists() -> bool:
 							astar.connect_points(point_id, next_id)
 	
 	## Check if there's a way to get from start to end with A*.
-	## Check is invalid even if there's a diagonal connection. We want *rooms*  without those.
+	## Check is invalid even if there's a diagonal connection. We want *rooms* without those.
 	var start_id = get_point_id(room_start_point)
 	var end_id = get_point_id(room_end_point)
 	

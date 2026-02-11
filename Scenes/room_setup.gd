@@ -22,6 +22,8 @@ func _ready() -> void:
 	## The Player is moved to the room's entrance
 	room_generator.begin_generating()
 	await room_generator.completed_generation
+	## Add Player to dict of Entities, place it on the start Tile
+	room_data.room_entities[room_generator.room_start_point] = player
 	player.place_entity_at_tile(room_generator.room_start_point)
 	
 	## Room generator calls room enemy filler to start filing the room with Enemies
@@ -31,6 +33,9 @@ func _ready() -> void:
 	await room_enemy_filler.completed_filling_room
 	
 	## (MORE STEPS GO HERE!)
+	
+	## All Room data must be passed over to the RoomManager
+	RoomManager.room_data = room_data
 	
 	## Room is done, start the game proper by setting up the TurnManager
 	## First, add all Entities to its Turn Queue

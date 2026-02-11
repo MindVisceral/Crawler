@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 Singleton="*uid://dsdddf2i4slbo"
 EntityManager="*uid://b5swtp1gn1fwt"
 TurnManager="*uid://dlx0w0h4n570t"
+RoomManager="*uid://qll5ifgyts25"
 
 [display]
 

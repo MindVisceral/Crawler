@@ -4,6 +4,7 @@ class_name RoomEnemyFiller
 #region Exports
 ## Reference to the Tileset Node (unused!)
 @export var RoomTileset: TileMapLayer
+@export var GameScript: GameManager
 
 ## Reference to the Node the Enemies will be children of.
 @export var enemy_parent_node: Node2D
@@ -24,9 +25,8 @@ class_name RoomEnemyFiller
 ## Resource containing all information of a given Room
 var room_data: RoomData
 
-## Dictionary of Enemies placed in the Room - UNUSED! May be useful in keeping track of Enemies in
-## a Room with a RoomData Resource by the Game script
-var enemies_dict: Dictionary[int, int] = {}
+## Dictionary of Enemies placed in the Room
+var enemies_dict: Dictionary[Vector2, Entity] = {}
 #endregion
 
 ## The RoomData Resource must be passed on
@@ -43,13 +43,16 @@ func begin_filling_room() -> void:
 		var rand_type_enemy: PackedScene = enemy_types.pick_random()
 		enemies.append(rand_type_enemy.instantiate())
 	
-	## Find all empty spaces in the Room and store them in this Array
+	## Find all empty Tiles in the Room and store them in this Array.
+	## Occupation status is stored in the RoomData Resource
 	var empty_tiles: Array[Vector2] = []
-	for tile: Vector2 in room_data.room_terrain:
-		if room_data.room_terrain[tile] == false:
+	var room_status: Dictionary[Vector2, bool] = room_data.return_room_tile_occupation_status()
+	for tile: Vector2 in room_status:
+		if room_status[tile] == false:
 			empty_tiles.append(tile)
 	
-	## Now, as long as there is an empty tile, choose one randomly and "place" an Enemy there
+	## Now, as long as there is an empty tile and an Enemy that can be placed there,
+	## choose one randomly and "place" it there
 	while empty_tiles.is_empty() == false && enemies.is_empty() == false:
 		## Pick an empty tile to be filled with an Enemy
 		var tile: Vector2 = empty_tiles.pick_random()
@@ -59,27 +62,21 @@ func begin_filling_room() -> void:
 		var enemy: Enemy = enemies.pick_random()
 		enemies.erase(enemy)
 		enemy_parent_node.add_child(enemy)
-		## Enemy added to Singleton EntityManager list of Entities
-		EntityManager.entities.append(enemy)
+		
+		## Add this Enemy to dictionary of Entities, which will be added to RoomData
+		enemies_dict[tile] = enemy
+		
 		## Enemy setup
 		enemy.place_entity_at_tile(tile)
+		## rest of setup goes here, if neccessary
 	
+	## Filling the Room with Enemies is done.
 	completed_filling_room()
 
 ## Pass on important level information to the Game script so the next step may begin
 func completed_filling_room() -> void:
-	## Record room data and send it over
-	#var new_room_data: RoomData = RoomData.new()
-	#new_room_data.room_seed = room_seed
-	#new_room_data.fill_percent = fill_percent
-	#new_room_data.room_start_point = room_start_point
-	#new_room_data.room_end_point = room_end_point
-	#new_room_data.access_size = access_size
-	#new_room_data.room_width = room_width
-	#new_room_data.room_height = room_height
-	### Most important bit of information, terrain we just generated
-	#new_room_data.room_terrain = room
-	#
-	#EnemyFillerScript.room_data = new_room_data
-	#EnemyFillerScript.begin_filling_room()
-	pass
+	## Most important bit of information, Enemies we just generated and placed
+	room_data.room_entities.merge(enemies_dict)
+	
+	## Pass the information, the next step may begin
+	GameScript.retrieve_room_data(room_data)
