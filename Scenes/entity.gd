@@ -104,7 +104,8 @@ func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 #endregion
 
 #region Entity movement
-## Place this Entity on the given *tile* position, if there aren't any obstacles there
+## Place this Entity on the given *tile* position, if there aren't any obstacles there.
+## If movement succeeds, end turn. If it fails, rest
 func move_entity_to_tile(pos: Vector2i) -> void:
 	print("Entity taget pos: ", pos)
 	var current_pos: Vector2i = Vector2i(position.x / Singleton.TILE_SIZE,
