@@ -50,12 +50,13 @@ func pathfind() -> void:
 func pick_goal_node() -> void:
 	super()
 	## By default, just pick the Player, if present, from all Entities in the Room
-	for entity: Entity in EntityManager.entities:  ## Array of Entities from EntityManager
-		if entity is Player:
-			## Set as target for pathfinding
-			goal = entity
-			nav_agent.target_position = goal.global_position  ## in non-tile coordinates!
-			break  ## Stop looking for more goals
+	## Array of Entities from EntityManager
+	#for entity: Entity in RoomManager.room_data.room_entities:
+		#if entity is Player:
+			### Set as target for pathfinding
+			#goal = entity
+			#nav_agent.target_position = goal.global_position  ## in non-tile coordinates!
+			#break  ## Stop looking for more goals
 
 ## Determine next step towards the goal
 func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:

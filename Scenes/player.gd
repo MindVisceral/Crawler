@@ -20,10 +20,6 @@ var inputs_dict: Dictionary[String, Vector2i] = {
 func _ready() -> void:
 	super()
 	
-	## Player must be added to the Array of all Entities present in a Room.
-	## Since Player is always present, this is only necessary once (for now, this could change!)
-	EntityManager.entities.append(self)
-	
 	## Player must be snapped to closest tile
 	position = position.snapped(Vector2.ONE * Singleton.TILE_SIZE)
 
@@ -56,6 +52,11 @@ func perform_turn() -> void:
 ## Called when the Player takes a turn-ending action, like moving or attacking.
 func end_turn() -> void:
 	super()
+
+## Called when the Player opts to Rest for a Turn.
+## (for now, just ends the Turn)
+func rest_turn() -> void:
+	super()
 #endregion
 
 
@@ -76,16 +77,26 @@ func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 
 #region Player movement
 ## Attemp to move the Player in a given direction
-func move_manually(move_dir) -> void:
-	## First, get the Tile to which the Player will move to
+func move_manually(move_dir: String) -> void:
+	## If the chosen Tile is the current Tile, the Player will just rest for a Turn
+	## and the remaining code will be ignored. Resting end the turn.
+	if inputs_dict[move_dir] == Vector2i.ZERO:
+		rest_turn()
+		return
+	
+	## First, get the Tile to which the Player will move to,
+	## which is the Player's position in Tile space + movement direction
 	var target_tile: Vector2i = Vector2i(self.position.x / Singleton.TILE_SIZE, \
 	self.position.y / Singleton.TILE_SIZE) \
 		+ inputs_dict[move_dir]
 	
 	## And check if that Tile is empty. If so, move there.
 	if RoomManager.room_data.is_tile_empty(target_tile) == true:
-		## inputs_dict[] dictionary is of Vector2i, so that has to be translated to Vector2
+		## Move the Player's position to that Tile
+		## and record the change in RoomManager's RoomData Resource.
+		## NOTE: inputs_dict[] dictionary is of Vector2i, so that has to be translated to Vector2
 		position += Vector2(inputs_dict[move_dir].x, inputs_dict[move_dir].y) * Singleton.TILE_SIZE
+		RoomManager.move_entity(target_tile - inputs_dict[move_dir], target_tile)
 		
 		## Successful movement ends the Turn
 		end_turn()

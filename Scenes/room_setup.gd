@@ -39,8 +39,8 @@ func _ready() -> void:
 	
 	## Room is done, start the game proper by setting up the TurnManager
 	## First, add all Entities to its Turn Queue
-	for entity: Entity in EntityManager.entities:
-		TurnManager.turn_queue.append(entity)
+	for entity: Vector2i in RoomManager.room_data.room_entities:
+		TurnManager.turn_queue.append(RoomManager.room_data.room_entities[entity])
 	TurnManager.begin_game()
 
 ## Used by Scripts to return Data about the current Room

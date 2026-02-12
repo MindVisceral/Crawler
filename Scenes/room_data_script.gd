@@ -39,6 +39,7 @@ var room_entities: Dictionary[Vector2i, Entity] = {}
 ## Return whether the Tile on the passed position is free
 func is_tile_empty(tile_pos: Vector2i) -> bool:
 	#print("Tile at pos", tile_pos, " is terrain filled:", room_terrain.get(tile_pos, false))
+	#if (room_entities.has(tile_pos))
 	## If this Tile position is empty, return true.
 	## If a Tile is not recorder in the room_terrain Dict, it's considered empty anyway.
 	## This allows the Entities to move outside the boundary of the Room

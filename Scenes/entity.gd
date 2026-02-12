@@ -57,6 +57,11 @@ func end_turn() -> void:
 	is_entity_turn = false
 	TurnManager.add_entity_to_turn_queue(self)
 	TurnManager.report_turn_finished()  ## This must be called last
+
+## This Turn end without movement.
+## What "Rest" means exactly is up to the Entity's AI, but it just ends the turn by default
+func rest_turn() -> void:
+	end_turn()
 #endregion
 
 #region Entity pathfinding functions
@@ -99,31 +104,23 @@ func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 #endregion
 
 #region Entity movement
-### Place this Entity on the given *tile* position, if there aren't any obstacles there
-#func move_entity_to_tile(pos: Vector2) -> void:
-	#print("CALLED ENTITY MOVEMENT FOR ", self)
-	### Passed 'pos' position is in tile coordinates, so it has to be adjusted
-	### so the raycast will fire and see objects locally, in relation to Entity space
-	#var ray_target_pos: Vector2 = \
-		#(pos - (self.position / Singleton.TILE_SIZE)) * Singleton.TILE_SIZE
-	#%ObstacleCast.target_position = ray_target_pos
-	#%ObstacleCast.force_raycast_update()
-	#
-	### If not obstacles are present, allow for the Entity to move there
-	#if !%ObstacleCast.is_colliding():
-		#position = pos.snapped(Vector2.ONE) * Singleton.TILE_SIZE
-	#else:
-		#push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
-	#
-	### No matter if it succeeded, movement ends a Turn
-	#end_turn()
-
 ## Place this Entity on the given *tile* position, if there aren't any obstacles there
 func move_entity_to_tile(pos: Vector2i) -> void:
-	if RoomManager.room_data.is_tile_empty(pos):
-		position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
+	print("Entity taget pos: ", pos)
+	var current_pos: Vector2i = Vector2i(position.x / Singleton.TILE_SIZE,
+		position.y / Singleton.TILE_SIZE)
+	## Movement has no point if the Entity just wants to remain where they are
+	if pos != current_pos:
+		## If a given Tile is empty, move the Entity to that spot
+		## and update its position in RoomManger's RoomData Resource
+		if RoomManager.room_data.is_tile_empty(pos):
+			position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
+			RoomManager.move_entity(current_pos, pos)
+		else:
+			push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED AT: ", pos)
+		
 	else:
-		push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED: ", %ObstacleCast.get_collider())
+		print("Entity ", self, " remains in place")
 	
 	## No matter if it succeeded, movement ends a Turn
 	end_turn()
@@ -135,4 +132,11 @@ func move_entity_to_tile(pos: Vector2i) -> void:
 ## DOESN'T ACCOUNT FOR OBSTACLES, OTHER SCRIPTS SHOULD HANDLE THAT
 func place_entity_at_tile(pos: Vector2i) -> void:
 	position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
+	## Also place the Entity in RoomManager's RoomData Resource
+	RoomManager.place_entity(pos, self)
+
+## NOT NEEDED
+### Entities keep track of their position in Tile space. This function changes that position.
+#func change_entity_tile_pos(new_tile_pos: Vector2i) -> void:
+	#tile_pos = new_tile_pos
 #endregion
