@@ -29,6 +29,7 @@ animations = [{
 
 [node name="Player" unique_id=1570436374 instance=ExtResource("1_x3wgy")]
 script = ExtResource("1_sweqy")
+instant_turn = false
 
 [node name="Sprite" parent="." index="0" unique_id=1647545470]
 sprite_frames = SubResource("SpriteFrames_3smsa")

@@ -30,6 +30,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		## Match Player input to input direction Dictionary and attempt to move in that direction
 		for move_dir in inputs_dict.keys():
 			if event.is_action_pressed(move_dir):
+				print("MOVED")
 				move_manually(move_dir)
 		
 		## Move up/down a floor if possible

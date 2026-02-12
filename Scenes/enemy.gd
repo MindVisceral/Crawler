@@ -9,19 +9,6 @@ class_name Enemy
 func _ready() -> void:
 	super()
 
-func _physics_process(delta: float) -> void:
-	### Navigation doesn't happen without these circumstances being right
-	#if NavigationServer2D.map_get_iteration_id(nav_agent.get_navigation_map()) == 0:
-		#print("No navmap")
-		#return
-	#if nav_agent.is_navigation_finished():
-		#print("Done with navigation")
-		#return
-	
-	## Run the pathfinding algorithm, including targetting (finding the Enemy's goal)
-	#pathfind()
-	pass
-
 #region Enemy Turn functions
 ## All Entity turns are called in order from a Queue in TurnManager Autoload
 func perform_turn() -> void:
@@ -30,6 +17,7 @@ func perform_turn() -> void:
 	## Navigation doesn't happen without these circumstances being right
 	if NavigationServer2D.map_get_iteration_id(nav_agent.get_navigation_map()) == 0:
 		print("No navmap")
+		end_turn()
 		return
 	## Turn is started by finding a a path to the Entity's goal, which included finding this goal
 	pathfind()

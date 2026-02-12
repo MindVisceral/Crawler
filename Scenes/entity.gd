@@ -5,8 +5,19 @@ class_name Entity
 @export var nav_agent: NavigationAgent2D
 
 #region Turn variables
+## Some Entities' Turns can be performed instantly in one frame, while others may want to
+## use Godot's 'await', like the Player which must wait for Input.
+## Enemy AI typically knows what to immediately, so this is turned on by default.
+## Used by TurnManager to know when to wait and when not to.
+## WARNING: Turning this on for the Player *will* cause problems.
+@export var instant_turn: bool = true
+
 ## All Entities are capable of having a Turn. This boolean is switched when it's this Entity's turn.
 var is_entity_turn: bool = false
+
+## Signal emmited whenever this Entity finishes its Turn,
+## it's required by the TurnManager for the game to proceed
+signal ended_turn
 #endregion
 
 #region Pathfinding variables
@@ -56,7 +67,9 @@ func perform_turn() -> void:
 func end_turn() -> void:
 	is_entity_turn = false
 	TurnManager.add_entity_to_turn_queue(self)
-	TurnManager.report_turn_finished()  ## This must be called last
+	
+	## This must be called last
+	ended_turn.emit()
 
 ## This Turn end without movement.
 ## What "Rest" means exactly is up to the Entity's AI, but it just ends the turn by default
@@ -107,7 +120,7 @@ func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 ## Place this Entity on the given *tile* position, if there aren't any obstacles there.
 ## If movement succeeds, end turn. If it fails, rest
 func move_entity_to_tile(pos: Vector2i) -> void:
-	print("Entity taget pos: ", pos)
+	#print("Entity taget pos: ", pos)
 	var current_pos: Vector2i = Vector2i(position.x / Singleton.TILE_SIZE,
 		position.y / Singleton.TILE_SIZE)
 	## Movement has no point if the Entity just wants to remain where they are
@@ -121,7 +134,8 @@ func move_entity_to_tile(pos: Vector2i) -> void:
 			push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED AT: ", pos)
 		
 	else:
-		print("Entity ", self, " remains in place")
+		#print("Entity ", self, " remains in place")
+		pass
 	
 	## No matter if it succeeded, movement ends a Turn
 	end_turn()
@@ -135,9 +149,4 @@ func place_entity_at_tile(pos: Vector2i) -> void:
 	position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
 	## Also place the Entity in RoomManager's RoomData Resource
 	RoomManager.place_entity(pos, self)
-
-## NOT NEEDED
-### Entities keep track of their position in Tile space. This function changes that position.
-#func change_entity_tile_pos(new_tile_pos: Vector2i) -> void:
-	#tile_pos = new_tile_pos
 #endregion
