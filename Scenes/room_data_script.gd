@@ -27,15 +27,18 @@ var room_entities: Dictionary[Vector2i, Entity] = {}
 #endregion
 
 #region Functions
-### Return whether the Tile on the passed position is free
-#func is_tile_empty(tile_pos: Vector2) -> bool:
-	### If this Tile position is empty, return true
-	#if room_terrain.has(tile_pos) && room_entities.has(tile_pos) == false:
-		#if room_terrain[tile_pos] != false:
-			#return true
-	#
-	### Tile is occupied, return false
-	#return false
+## Returns an Array of Entities/Items/etc. present on the given Tile
+func return_tile_contents(tile_pos: Vector2i) -> Array[Node2D]:
+	var contents: Array[Node2D]
+	## Add all Entities to the Array
+	for entity_pos in room_entities:
+		if entity_pos == tile_pos:
+			contents.append(room_entities[entity_pos])
+	## Add all X to the array... and so on
+	
+	## Return Array
+	return contents
+
 ## Return whether the Tile on the passed position is free
 func is_tile_empty(tile_pos: Vector2i) -> bool:
 	#print("Tile at pos", tile_pos, " is terrain filled:", room_terrain.get(tile_pos, false))

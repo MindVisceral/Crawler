@@ -27,11 +27,13 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	## Movement only works if it's the Players Turn!
 	if is_entity_turn == true:
-		## Match Player input to input direction Dictionary and attempt to move in that direction
+		## Match Player input to input direction Dictionary
 		for move_dir in inputs_dict.keys():
 			if event.is_action_pressed(move_dir):
-				print("MOVED")
-				move_manually(move_dir)
+				#move_manually(move_dir)
+				## and translate the movement direction to Tile position
+				## and make the Player decide what to do with it
+				decide_action(translate_input_to_tile_pos(move_dir))
 		
 		## Move up/down a floor if possible
 		if event.is_action_pressed("move_up_floor"):
@@ -57,6 +59,7 @@ func end_turn() -> void:
 ## Called when the Player opts to Rest for a Turn.
 ## (for now, just ends the Turn)
 func rest_turn() -> void:
+	print("PLAYER Rest Turn")
 	super()
 #endregion
 
@@ -76,35 +79,73 @@ func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 
 #endregion
 
-#region Player movement
-## Attemp to move the Player in a given direction
-func move_manually(move_dir: String) -> void:
-	## If the chosen Tile is the current Tile, the Player will just rest for a Turn
-	## and the remaining code will be ignored. Resting end the turn.
-	if inputs_dict[move_dir] == Vector2i.ZERO:
+#region Player decisions
+## The Player will automatically decide to move or attack a given Tile.
+## "Moving" at an occupied Tile attacks it automatically
+func decide_action(tile_position: Vector2i) -> void:
+	## If the Player chose their current Tile as the target Tile, that's considered a Rest Turn
+	if tile_position == translate_position_to_tile_pos(position):
 		rest_turn()
 		return
 	
-	## First, get the Tile to which the Player will move to,
-	## which is the Player's position in Tile space + movement direction
-	var target_tile: Vector2i = Vector2i(self.position.x / Singleton.TILE_SIZE, \
-	self.position.y / Singleton.TILE_SIZE) \
-		+ inputs_dict[move_dir]
+	print("PLAYER TARGET TILE POSITION: ", tile_position)
 	
-	## And check if that Tile is empty. If so, move there.
-	if RoomManager.room_data.is_tile_empty(target_tile) == true:
-		## Move the Player's position to that Tile
-		## and record the change in RoomManager's RoomData Resource.
-		## NOTE: inputs_dict[] dictionary is of Vector2i, so that has to be translated to Vector2
-		position += Vector2(inputs_dict[move_dir].x, inputs_dict[move_dir].y) * Singleton.TILE_SIZE
-		RoomManager.move_entity(target_tile - inputs_dict[move_dir], target_tile)
-		
-		## Successful movement ends the Turn
-		end_turn()
-	
+	## If it's not a Rest Turn, try movement.
+	## Player moves only if the target Tile is empty
+	if RoomManager.room_data.is_tile_empty(tile_position) == true:
+		move_entity_to_tile(tile_position)
+	## If target Tile isn't empty, there's an Entity there, so attack it.
+	else:
+		## Tile isn't empty, get its contents
+		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+		print("Target Tile contents: ", contents)
+		## Check if this Tile contains an Enemy
+		for content: Node2D in contents:
+			if content is Enemy:
+				print("PLAYER ATTACKING")
+				## TODO: FOR NOW:
+				## just attack the Enemy. This should allow for more than just attacking
+				attack_at_tile(tile_position)
+#endregion
 
-## Place Player on the given *tile* position, if there aren't any obstacles there
-## Like any other Entity, used by pathfinding
+#region Player movement
+## Moves Player to a given Tile position without checking if it's valid.
+## Differs from most Entities' movement; Rest Turns are handled earlier in the script in
+## decide_action() function and failed Turns cannot occur.
 func move_entity_to_tile(pos: Vector2i) -> void:
-	super(pos)
+	var current_pos: Vector2i = translate_position_to_tile_pos(position)
+	position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
+	RoomManager.move_entity(current_pos, pos)
+	
+	## End the Turn after successful movement
+	end_turn()
+#endregion
+
+#region Dealing damage
+## Attempt to attack whatever is present on the given Tile.
+## Identical to Entity versin of this function, but doesn't check for goal.
+## TODO: It should, once more than 1 thing can be present on a Tile.
+func attack_at_tile(tile_position: Vector2i) -> void:
+	print("Player attempted attack at tile position: ", tile_position)
+	## Can only attack if that given Tile isn't empty
+	if RoomManager.room_data.is_tile_empty(tile_position) == false:
+		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+		for content: Node2D in contents:
+			if content is Entity:
+				content.damage_health(damage_value)
+	
+	## Attempted attacks result in end of Turn
+	end_turn()
+#endregion
+
+#region Utility functions
+## This function takes an Input direction (string)
+## and translates it to get a target Tile in Tile space,
+## taking the Player's current position into consideration.
+func translate_input_to_tile_pos(input_dir: String) -> Vector2i:
+	var return_tile_pos: Vector2i
+	return_tile_pos = (Vector2i(position.x, position.y) / Singleton.TILE_SIZE) \
+		+ inputs_dict[input_dir]
+	
+	return return_tile_pos
 #endregion

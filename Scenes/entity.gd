@@ -20,6 +20,20 @@ var is_entity_turn: bool = false
 signal ended_turn
 #endregion
 
+#region Health variables
+@export_group("Health")
+## Maximum health
+@export_range(1, 100) var max_health: int = 10
+## Current health amount out of max_health
+var current_health: int = 10
+#endregion
+
+#region Damage variables
+@export_group("Damage")
+## Damage dealt
+@export_range(1, 100) var damage_value: int = 2
+#endregion
+
 #region Pathfinding variables
 ## This Entity's goal (a Node), used for pathfinding
 var goal: Node2D = self
@@ -42,6 +56,9 @@ func _ready() -> void:
 	## How far away the Enemy may stray from the calculated path. Since the Enemy is tied to a grid,
 	## they shouldn't stray from the path at all, if possible. Hence, one Tile away from path.
 	nav_agent.path_max_distance = Singleton.TILE_SIZE
+	
+	## Set current_health to max_health
+	settle_health()
 
 func _physics_process(delta: float) -> void:
 	### Navigation doesn't happen without these circumstances being right
@@ -96,9 +113,9 @@ func pathfind() -> void:
 	#print("NAVIGATION TILE PATH:", tile_coords_nav_path)
 	#print("Next path position (tile coordinates): ", next_path_pos)
 	
-	## Finally, move Entity to next tile position,
-	## as determined by find_next_step_to_goal()
-	move_entity_to_tile(next_path_pos)
+	## Finally, decide what the Entity should do with information of their next target Tile
+	decide_action(next_path_pos)
+	#move_entity_to_tile(next_path_pos)
 
 
 ## Pick a goal to move towards based on Entity-specific behaviour
@@ -116,13 +133,30 @@ func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
 
 #endregion
 
+#region Entity decisions
+## While pathfinding, the Entity must decide whether to move to the next Tile or attack what is
+## placed on that Tile, if the Tile contains the Entity's goal. This logic can vary between Entities
+func decide_action(tile_position: Vector2i) -> void:
+	## If that next Tile is empty, move there
+	if RoomManager.room_data.is_tile_empty(tile_position) == true:
+		move_entity_to_tile(tile_position)
+	else:
+		## Tile isn't empty, get its contents
+		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+		## Check if this Tile contains our goal
+		for content: Node2D in contents:
+			if content == goal:
+				## TODO: FOR NOW:
+				## just attack the goal. This should allow for more than just attacking
+				attack_at_tile(tile_position)
+#endregion
+
 #region Entity movement
 ## Place this Entity on the given *tile* position, if there aren't any obstacles there.
 ## If movement succeeds, end turn. If it fails, rest
 func move_entity_to_tile(pos: Vector2i) -> void:
 	#print("Entity taget pos: ", pos)
-	var current_pos: Vector2i = Vector2i(position.x / Singleton.TILE_SIZE,
-		position.y / Singleton.TILE_SIZE)
+	var current_pos: Vector2i = translate_position_to_tile_pos(position)
 	## Movement has no point if the Entity just wants to remain where they are
 	if pos != current_pos:
 		## If a given Tile is empty, move the Entity to that spot
@@ -133,15 +167,16 @@ func move_entity_to_tile(pos: Vector2i) -> void:
 		else:
 			push_warning("CAN'T MOVE ENTITY(ID: ", self, "), OBSTACLE DETECTED AT: ", pos)
 		
+	## Remaining in place is a Rest Turn
 	else:
-		#print("Entity ", self, " remains in place")
-		pass
+		rest_turn()
+		return
 	
 	## No matter if it succeeded, movement ends a Turn
 	end_turn()
 #endregion
 
-#region Entity setup
+#region Entity position setup
 ## Places the given Entity at the Tile's provided position.
 ## Doesn't end the Entity's turn.
 ## DOESN'T ACCOUNT FOR OBSTACLES, OTHER SCRIPTS SHOULD HANDLE THAT
@@ -149,4 +184,67 @@ func place_entity_at_tile(pos: Vector2i) -> void:
 	position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
 	## Also place the Entity in RoomManager's RoomData Resource
 	RoomManager.place_entity(pos, self)
+
+## Called on _ready(), sets current_health to maximum_health
+func settle_health() -> void:
+	current_health = max_health
+#endregion
+
+#region Health functions
+## Heal the Entity by given health_amount
+func heal_health(heal_amount: int) -> void:
+	current_health += heal_amount
+	current_health = clampi(current_health, 0, max_health)
+	
+	print("Entity ", self, " has been healed for ", heal_amount, \
+	"; HP: ", current_health,"/",max_health)
+
+## Damage the Entity by given damage_amount
+func damage_health(damage_amount: int) -> void:
+	current_health -= damage_amount
+	current_health = clampi(current_health, 0, max_health)
+	
+	print("Entity ", self, " has been hit for ", damage_amount, \
+		"; HP: ", current_health,"/",max_health)
+	
+	if current_health <= 0:
+		kill_entity()
+
+## Entity lost all HP, kill it
+func kill_entity() -> void:
+	print("Entity ", self, " is dead!")
+	## Before freeing, remove all of this Entity's Turns from TurnManager's turn_queue
+	TurnManager
+	## and remove Entity from RoomManager's keeper of Entities
+	RoomManager.remove_entity(translate_position_to_tile_pos(position), self)
+	queue_free()
+#endregion
+
+#region Dealing damage
+## Attempt to attack whatever is present on the given Tile.
+## Doesn't check for distance or what is being attacked,
+## assumes Tile is within reach and goal is there.
+func attack_at_tile(tile_position: Vector2i) -> void:
+	#print("Attempted attack at tile position: ", tile_position)
+	## Can only attack if that given Tile isn't empty
+	if RoomManager.room_data.is_tile_empty(tile_position) == false:
+		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+		for content: Node2D in contents:
+			if content == goal and goal is Entity:
+				goal.damage_health(damage_value)
+	
+	## Attempted attacks result in end of Turn
+	end_turn()
+#endregion
+
+#region Utility functions
+## Takes given position Vector2 and divides it by TILE_SIZE to get that position
+## but in Tile space and returns that as Vector2i
+func translate_position_to_tile_pos(regular_pos: Vector2) -> Vector2i:
+	return Vector2i(regular_pos.x / Singleton.TILE_SIZE, regular_pos.y / Singleton.TILE_SIZE)
+
+## Takes given Tile position Vector2i and multiplies it by TILE_SIZE to get that position
+## but in regular position space and returns that as Vector2
+func translate_tile_pos_to_position(tile_pos: Vector2i) -> Vector2:
+	return Vector2(tile_pos.x * Singleton.TILE_SIZE, tile_pos.y * Singleton.TILE_SIZE)
 #endregion

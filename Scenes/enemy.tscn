@@ -30,6 +30,8 @@ animations = [{
 [node name="Enemy" unique_id=1570436374 instance=ExtResource("1_hghv2")]
 script = ExtResource("1_epg4t")
 enemy_type_id = 0
+max_health = 6
+damage_value = 1
 
 [node name="Sprite" parent="." index="0" unique_id=1647545470]
 sprite_frames = SubResource("SpriteFrames_ghaa6")

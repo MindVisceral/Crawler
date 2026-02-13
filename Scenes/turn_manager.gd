@@ -21,8 +21,8 @@ func begin_game() -> void:
 	
 	## Set the first Entity in the Queue (the Player, if present) as the next in line
 	current_turn_user = turn_queue.front()
-	print("STARTING TURN QUEUE:", turn_queue)
-	print("STARTING TURN BELONGS TO: ", current_turn_user)
+	#print("STARTING TURN QUEUE:", turn_queue)
+	#print("STARTING TURN BELONGS TO: ", current_turn_user)
 	
 	## Game is ready, enter the main turn-processing loop
 	process_turns()
@@ -39,7 +39,7 @@ func process_turns() -> void:
 			## and empty the next_round_turn_queue
 			turn_queue = next_round_turn_queue.duplicate(true)
 			next_round_turn_queue.clear()
-			print("QUEUE PREPARED")
+			#print("QUEUE PREPARED")
 			## Wait a frame, and being the next Round
 			await get_tree().physics_frame
 			continue
@@ -49,7 +49,7 @@ func process_turns() -> void:
 		## If an Entity wants to have another turn, it will have to request one
 		current_turn_user = turn_queue.pop_front()
 		#print("TURN QUEUE:", turn_queue)
-		print("CURRENT TURN BELONGS TO: ", current_turn_user)
+		#print("CURRENT TURN BELONGS TO: ", current_turn_user)
 		current_turn_user.perform_turn()
 		
 		## If a given Entity has instant Turns turned on, the game should NOT use await.
@@ -59,5 +59,14 @@ func process_turns() -> void:
 
 ## This function is called when an Entity must be added to the Turn Queue next Round
 func add_entity_to_turn_queue(entity: Entity) -> void:
-	print("ADDED ", entity, " TO (NEXT) TURN QUEUE")
+	#print("ADDED ", entity, " TO (NEXT) TURN QUEUE")
 	next_round_turn_queue.append(entity)
+
+## This function removes all instances of a given Entity in the turn_queue
+## and the queue for the next round
+func remove_entity_from_turn_queue(entity: Entity) -> void:
+	## Loop through the whole Array and find all instances of this Entity
+	## NOTE: Has to be done backwards since looping through and removing each instance
+	## can results in bugs with Godot Arrays 
+	turn_queue = turn_queue.filter(func(x): return x != entity)
+	next_round_turn_queue = next_round_turn_queue.filter(func(x): return x != entity)

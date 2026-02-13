@@ -29,3 +29,11 @@ func move_entity(old_pos: Vector2i, new_pos: Vector2i) -> void:
 		room_data.room_entities[new_pos] = room_data.room_entities[old_pos]
 		## and remove the old_pos key
 		room_data.room_entities.erase(old_pos)
+
+## Remove Entity from RoomData altogether. Used when an Entity is killed
+func remove_entity(position: Vector2i, entity: Entity) -> void:
+	## Check if there is an Entity on the given position and if the Entity there is the same one
+	## as the one that was passed (this check is currently unnecessary)
+	if room_data.room_entities.has(position) == true:
+		if room_data.room_entities[position] == entity:
+			room_data.room_entities.erase(position)
