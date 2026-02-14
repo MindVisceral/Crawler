@@ -59,7 +59,7 @@ func end_turn() -> void:
 ## Called when the Player opts to Rest for a Turn.
 ## (for now, just ends the Turn)
 func rest_turn() -> void:
-	print("PLAYER Rest Turn")
+	#print("PLAYER Rest Turn")
 	super()
 #endregion
 
@@ -88,8 +88,6 @@ func decide_action(tile_position: Vector2i) -> void:
 		rest_turn()
 		return
 	
-	print("PLAYER TARGET TILE POSITION: ", tile_position)
-	
 	## If it's not a Rest Turn, try movement.
 	## Player moves only if the target Tile is empty
 	if RoomManager.room_data.is_tile_empty(tile_position) == true:
@@ -98,11 +96,9 @@ func decide_action(tile_position: Vector2i) -> void:
 	else:
 		## Tile isn't empty, get its contents
 		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
-		print("Target Tile contents: ", contents)
 		## Check if this Tile contains an Enemy
 		for content: Node2D in contents:
-			if content is Enemy:
-				print("PLAYER ATTACKING")
+			if content is Entity:
 				## TODO: FOR NOW:
 				## just attack the Enemy. This should allow for more than just attacking
 				attack_at_tile(tile_position)

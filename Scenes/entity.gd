@@ -214,7 +214,7 @@ func damage_health(damage_amount: int) -> void:
 func kill_entity() -> void:
 	print("Entity ", self, " is dead!")
 	## Before freeing, remove all of this Entity's Turns from TurnManager's turn_queue
-	TurnManager
+	TurnManager.remove_entity_from_turn_queue(self)
 	## and remove Entity from RoomManager's keeper of Entities
 	RoomManager.remove_entity(translate_position_to_tile_pos(position), self)
 	queue_free()
