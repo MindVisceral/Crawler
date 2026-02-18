@@ -7,6 +7,24 @@
 [ext_resource type="PackedScene" uid="uid://bovwus4c3q7bh" path="res://Scenes/player.tscn" id="3_wrm1d"]
 [ext_resource type="PackedScene" uid="uid://bybdxc1b2a0pl" path="res://Scenes/enemy.tscn" id="4_i6g32"]
 
+[sub_resource type="Gradient" id="Gradient_i6g32"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.53333336, 0.6666667, 0.8)
+colors = PackedColorArray(0, 0, 0, 1, 0.27752772, 0.27752772, 0.27752772, 0.6156863, 0.60933006, 0.6093301, 0.60933006, 0.35686275, 1, 1, 1, 0)
+metadata/_snap_enabled = true
+metadata/_snap_count = 15
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1l0tm"]
+noise_type = 3
+frequency = 0.101
+fractal_octaves = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_v158k"]
+width = 64
+height = 64
+noise = SubResource("FastNoiseLite_1l0tm")
+color_ramp = SubResource("Gradient_i6g32")
+
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_wowpa"]
 vertices = PackedVector2Array(8, 8, -8, 8, -8, -8, 8, -8)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
@@ -644,10 +662,10 @@ script = ExtResource("2_wrm1d")
 RoomTileset = NodePath("../../RoomTileset")
 GameScript = NodePath("../..")
 random_access_points = true
-fill_percent = 1
 access_size = 2
-room_width = 12
-room_height = 12
+randomize_seed = true
+noise_height_texture = SubResource("NoiseTexture2D_v158k")
+fill_percent = 1
 should_be_closed = false
 
 [node name="RoomEnemyFiller" type="Node" parent="RoomGenScripts" unique_id=1869933733 node_paths=PackedStringArray("RoomTileset", "GameScript", "enemy_parent_node")]
@@ -656,6 +674,7 @@ RoomTileset = NodePath("../../RoomTileset")
 GameScript = NodePath("../..")
 enemy_parent_node = NodePath("../../Entities")
 enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
+enemy_amount = 0
 
 [node name="RoomTileset" type="TileMapLayer" parent="." unique_id=2010401026]
 tile_set = SubResource("TileSet_3dryh")

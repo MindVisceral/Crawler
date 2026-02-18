@@ -4,62 +4,113 @@ class_name RoomGenerator
 @export var RoomTileset: TileMapLayer
 @export var GameScript: GameManager
 
-#region Exports
+#region Exports & variables
+## Start/end point are validity-checked on _ready()
 @export_group("Room access")
-## 
-## Maximum is the same as room_width/height, but that must be checked on _ready()
+## Position of the start point in the Room in Tile position coordinates
 @export var room_start_point: Vector2i = Vector2i.ZERO
+## Position of the end point in the Room in Tile position coordinates
 @export var room_end_point: Vector2i = Vector2i.ZERO
-## Points can be placed randomly on the map
+
+## Should the start point be placed randomly?
 @export var random_start_point: bool = false
+## Should the end point be placed randomly?
 @export var random_end_point: bool = false
+## Should the start and end points be placed randomly?
 @export var random_access_points: bool = false
+
+## Amount of empty space around given room's entry and exit points
+@export_range(1, 10, 1) var access_size: int = 3;
 
 
 @export_group("Room seeding")
 ## Room seed, 0 by default
 @export_range(-9999, 9999, 1) var room_seed: int = 0
+
 ## Makes the room's seed random each time; without this, the room will remain the same
 @export var randomize_seed: bool = false
 
-@export_group("Room data")
-## Percent of room filled with walls
-@export_range(0, 100, 1) var fill_percent: int = 45
-## Amount of smoothing iterations before room is done
-@export_range(0, 10, 1) var smoothing_iterations: int = 4
-## Not used???
-@export_range(5, 100, 1) var min_room_size: int = 50
-## Amount of empty space around given room's entry and exit points
-@export_range(1, 10, 1) var access_size: int = 3;
+## Noise height texture used to determin Tile placement in the Room and the kind of Tiles used
+@export var noise_height_texture: NoiseTexture2D
+## Noise variable (fast noise lite) using noise_height_texture
+var noise: Noise
+
 
 @export_group("Room settings")
-## Room size
+## Room width in Tiles
 @export_range(5, 256) var room_width: int = 64
+## Room height in Tiles
 @export_range(5, 256) var room_height: int = 64
+
+## Percent of room filled with walls, 45% is the ideal
+@export_range(0, 100, 1) var fill_percent: int = 45
+
+## Amount of smoothing iterations before room is done
+@export_range(0, 10, 1) var smoothing_iterations: int = 4
+
 ## Maximum amount of attemps to generate a room before algorithm gives up
 @export_range(0, 32) var max_generation_attempts: int = 16
 
-@export_group("Miscellaneous")
 ## Should a given room have closed edges?
 @export var should_be_closed: bool = true
-#endregion
+
+
+## Keep noise_height_texture's color_ramp in a variable for future reference
+@onready var color_ramp: Gradient = noise_height_texture.color_ramp
+
+
+## Dictionary which maps distinct sprite types (the ints) from the Tileset
+## onto floats, which are alpha values from the color_ramp's Colors
+## EMPTY BY DEFAULT! It's filled on _ready() with values from the Noise's color_ramp!
+var float_to_tile_dict: Dictionary[float, int] = {}
 
 ## Stores a given generated room in form of tiles:
-## contains a tile's position and whether it's empty or filled
-var room: Dictionary[Vector2i, bool] = {}
+## contains a Tile's position and a Tile type (where -1 is an empty Tile)
+var room: Dictionary[Vector2i, int] = {}
+#endregion
+
+
+##
+func _ready() -> void:
+	## Set noise_height_texture width and height to fit the room's width and height
+	noise_height_texture.width = room_width
+	noise_height_texture.height = room_height
+	
+	## Fill the float_to_tile_dict Dictionary with color_ramp's Colors' alpha values;
+	## beginning at '-1' (empty Tile),
+	## ending at N-2 (where N-2 is the amount of Colors in color_ramp).
+	## NOTE: The maths if fine That is technically N-2, but get_point_count() starts from 0
+	## instead of -1 like in the comment.
+	## The for loop goes through all offsets in color_ramp
+	for i: int in range(-1, color_ramp.get_point_count() - 1, 1):
+		## Use each offset's value to sample the color_ramp, and store the alpha value of the Color
+		## at the offset. Alpha is all we care about here, all of this is just a roundabout way
+		## of storing it in a Dictionary.
+		var sample_alpha: float = color_ramp.sample(color_ramp.offsets[i+1]).a
+		## Record the alpha value and its corresponding Tile kind value to the Dictionary
+		float_to_tile_dict[sample_alpha] = i
+	
+	print("Dict: ", float_to_tile_dict)
 
 func begin_generating() -> void:
-		## Randomize the seed
+	## Randomize the seed
 	if randomize_seed == true:
 		room_seed += randi()
 	
-	attempt_random_access()
-	check_room_access_points()
+	## Get Noise and set Noise seed
+	noise = noise_height_texture.noise
+	noise.seed = room_seed
+	
+	## Pick the positions of start/end points, if they're set to be random
+	decide_access_points()
+	## Check if access points' positions are valid and correct them
+	correct_access_points()
+	## Generate the level
 	generate_level(room_start_point, room_end_point)
 
 #region Access point functions
 ## Depending on the randomization settings, will (or won't) pick random start/end points
-func attempt_random_access() -> void:
+func decide_access_points() -> void:
 	if random_access_points:
 		room_start_point = randomize_access_point(0, room_width, room_height);
 		room_end_point = randomize_access_point(0, room_width, room_height);
@@ -74,7 +125,7 @@ func randomize_access_point(min_value: int, max_x_value: int, max_y_value: int) 
 	return Vector2i(randi_range(min_value, max_x_value), randi_range(min_value, max_y_value))
 
 ## Checks if chosen access points are valid and corrects them if they're not
-func check_room_access_points() -> void:
+func correct_access_points() -> void:
 	## Function will stop and fail after n attempts at randomization
 	var attempts: int = 0
 	
@@ -112,28 +163,29 @@ func check_room_access_points() -> void:
 func generate_level(start: Vector2i, end: Vector2i) -> void:
 	## Attempts at generation
 	var attempt: int = 0
-	## Check if given map is valid
+	## Given map is valid flag
 	var room_is_valid: bool = false
 	
-	## Generating rooms while possible
+	## Generate new Rooms until success or failure
 	while !room_is_valid and attempt < max_generation_attempts:
 		attempt += 1
 		
-		## Clear map data
+		## Clear map data for this generation loop
 		room.clear()
 		
 		## New room, 'attempt' is a seed
 		init_room(attempt)
 		
 		## Smooths out above generated room
-		for i in smoothing_iterations:
-			smooth_room()
+		#for i in smoothing_iterations:
+			#smooth_room()
 		
 		## Make space around start and end points to allow for movement
 		make_space(room_start_point, access_size)
 		make_space(room_end_point, access_size)
 		
-		## Check if given room can even be traversed
+		## Check if given room can even be traversed from start to end points
+		## If it can, room generation has ended successfully
 		room_is_valid = check_path_exists()
 	
 	
@@ -152,20 +204,59 @@ func generate_level(start: Vector2i, end: Vector2i) -> void:
 ## Generates a room randomly
 func init_room(seed_value: int) -> void:
 	seed(seed_value * room_seed)
-	## Position; made a variable as to not create a new one every loop
-	var pos: Vector2i = Vector2i(0, 0)
+	## Position of a given Tile
+	var pos: Vector2i
+	## Noise value at given Tile position
+	var noise_value: float
 	
 	## Initial room filling
 	for x in range(room_width):
 		for y in range(room_height):
+			## Keep track of this Tile's position
 			pos = Vector2i(x, y)
+			## Get Noise value at this x:y position
+			noise_value = noise.get_noise_2d(x, y)
 			
-			## Fills the rooms's edges
-			if x == 0 || x == room_width - 1 || y == 0 || y == room_height - 1:
-				room[pos] = true
-			## Randomly decides if given tile is filled or not
-			else:
-				room[pos] = randf() * 100 < fill_percent
+			## Remap noise_value to be a number in 0--1 instead of -1--1 by default.
+			## This will ensure the value fits onto the color_ramp
+			noise_value = remap(noise_value, -1, 1, 0, 1)
+			## Now get the alpha value of the Color sampled from color_ramp
+			var sampled_color_value: float = \
+				color_ramp.sample(noise_value).a
+			
+			
+			## Assign the type of Tile to these coordinates, depending on the value
+			## sampled from the Dictionary of Tiles
+			room[pos] = float_to_tile_dict[sampled_color_value]
+			
+			
+			## NOTE: HERE: Get Color from sample() and compare it to an exported Enum or Dictionary
+			## so it's easy to change what values result in what Tiles. Just change color_ramp to
+			## get more Tiles.
+			
+			## Hardcoded old code
+			#
+			## Set Tile value ("kind") based on noise value
+			## Empty Tile
+			#if noise_value <= 0.001:
+				#room[pos] = -1
+			#elif noise_value > 0.001 && noise_value <= 0.002:
+				#room[pos] = 0
+			#elif noise_value > 0.002 && noise_value <= 0.004:
+				#room[pos] = 1
+			#elif noise_value > 0.004:
+				#room[pos] = 2
+			
+			
+			## old-old code for random/automata filling
+			### Fills the rooms's edges
+			#if x == 0 || x == room_width - 1 || y == 0 || y == room_height - 1:
+				#print("   ACTUALLY USED   ")
+				#room[pos] = true
+			### Randomly decides if given tile is filled or not
+			#else:
+				#room[pos] = randf() * 100 < fill_percent
+
 
 ## Smooths out the current room
 func smooth_room() -> void:
@@ -173,7 +264,7 @@ func smooth_room() -> void:
 	var pos: Vector2i = Vector2i(0, 0)
 	
 	## New room, result of smoothing
-	var new_room: Dictionary[Vector2i, bool] = {}
+	var new_room: Dictionary[Vector2i, int] = {}
 	for x in range(room_width):
 		for y in range(room_height):
 			pos = Vector2i(x, y)
@@ -223,7 +314,7 @@ func make_space(center: Vector2i, radius: int) -> void:
 			pos.y >= 0 && pos.y < room_height:
 				## Otherwise, that tile is made empty
 				if Vector2i(x, y).length() <= radius:
-					room[pos] = false
+					room[pos] = -1
 
 ## Check if there is a valid path between entry and exit points
 ## with A* algorithm
@@ -237,7 +328,7 @@ func check_path_exists() -> bool:
 		for y in range(room_height):
 			pos = Vector2i(x, y)
 			## Given tile is empty, add it to A*'s list
-			if room[pos] == false:
+			if room[pos] == -1:
 				var point_id: int = get_point_id(pos)
 				astar.add_point(point_id, pos)
 	
@@ -246,7 +337,7 @@ func check_path_exists() -> bool:
 		for y in range(room_height):
 			pos = Vector2i(x, y)
 			## Only check for neighbours if a given tile is empty
-			if room[pos] == false:
+			if room[pos] == -1:
 				## Get given tile's ID
 				var point_id: int = get_point_id(pos)
 				
@@ -278,7 +369,7 @@ func get_point_id(pos: Vector2i) -> int:
 func is_valid_empty_pos(pos: Vector2i) -> bool:
 	return pos.x >= 0 && pos.x < room_width && \
 	pos.y >= 0 && pos.y < room_height && \
-	room[pos] == false
+	room[pos] == -1
 
 ## Creates walls around the edges of a room
 func force_walls() -> void:
@@ -305,11 +396,20 @@ func apply_to_tileset() -> void:
 		for y in range(room_height):
 			pos = Vector2i(x, y)
 			## Wall tile
-			if room[pos] == true:
-				RoomTileset.set_cell(pos, 0, Vector2i(randi_range(0, 8), randi_range(1, 3)))  ## Random stone tile on x0-11,y1-3
+			if room[pos] != -1:
+				## Determine specific Tile kind based on room[pos] value
+				if room[pos] == 0:
+					## Random stone tile on x0-5,y5
+					RoomTileset.set_cell(pos, 0, Vector2i(randi_range(0, 5), 5))
+				elif room[pos] == 1:
+					## Random brick stone tile on x0-3,y3
+					RoomTileset.set_cell(pos, 0, Vector2i(randi_range(0, 3), 3))
+				elif room[pos] == 2:
+					## Random dark stone tile on x0-5,y0
+					RoomTileset.set_cell(pos, 0, Vector2i(randi_range(0, 5), 0))
 			## Empty tile
 			else:
-				RoomTileset.set_cell(pos, 0, Vector2i(0, 25))  ## Black tile on index x0,y26
+				RoomTileset.set_cell(pos, 0, Vector2i(0, 25))  ## A dark tile on index x0,y25
 	
 	## Start and End points get special Tiles assigned to them.
 	RoomTileset.set_cell(room_start_point, 0, Vector2i(3, 8))
@@ -330,7 +430,20 @@ func completed_generation() -> void:
 	new_room_data.room_width = room_width
 	new_room_data.room_height = room_height
 	## Most important bit of information, terrain we just generated
-	new_room_data.room_terrain = room
+	new_room_data.room_terrain = translate_room_terrain_to_bool(room)
 	
 	## Pass the information, the next step may begin
 	GameScript.retrieve_room_data(new_room_data)
+
+## Takes given room Dictionary and changes Tile info from int to bool,
+## where it's true if Tile is filled (!= -1) and false if empty (== -1)
+func translate_room_terrain_to_bool(room_dict: Dictionary[Vector2i, int]) \
+									-> Dictionary[Vector2i, bool]:
+	var translated_room: Dictionary[Vector2i, bool]
+	for info: Vector2i in room_dict:
+		if (room_dict[info] == -1):
+			translated_room[info] = false
+		else:
+			translated_room[info] = true
+	
+	return translated_room

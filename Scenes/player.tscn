@@ -40,4 +40,5 @@ frame_progress = 0.92598903
 
 [node name="Camera" type="Camera2D" parent="." index="3" unique_id=680646731]
 position = Vector2(8, 8)
+enabled = false
 zoom = Vector2(4, 4)
