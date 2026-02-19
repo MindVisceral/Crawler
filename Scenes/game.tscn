@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bsylv7o3ue06a" path="res://Scenes/room_setup.gd" id="1_3dryh"]
 [ext_resource type="Texture2D" uid="uid://drnmtfny7j7uw" path="res://Assets/piiixl-textures.png" id="2_qxrlw"]
 [ext_resource type="Script" uid="uid://dr1d716t7ef1q" path="res://Scenes/room_generator.gd" id="2_wrm1d"]
+[ext_resource type="Script" uid="uid://d12i3mgmaj4cd" path="res://Scenes/room_player_placer.gd" id="3_1l0tm"]
 [ext_resource type="Script" uid="uid://ba0t0un1578ee" path="res://Scenes/room_enemy_filler.gd" id="3_wowpa"]
 [ext_resource type="PackedScene" uid="uid://bovwus4c3q7bh" path="res://Scenes/player.tscn" id="3_wrm1d"]
 [ext_resource type="PackedScene" uid="uid://bybdxc1b2a0pl" path="res://Scenes/enemy.tscn" id="4_i6g32"]
@@ -649,10 +650,10 @@ texture = ExtResource("2_qxrlw")
 navigation_layer_0/layers = 1
 sources/0 = SubResource("TileSetAtlasSource_wrm1d")
 
-[node name="Game" type="Node2D" unique_id=2091573270 node_paths=PackedStringArray("player", "room_generator", "room_enemy_filler")]
+[node name="Game" type="Node2D" unique_id=2091573270 node_paths=PackedStringArray("room_generator", "room_player_placer", "room_enemy_filler")]
 script = ExtResource("1_3dryh")
-player = NodePath("Entities/Player")
 room_generator = NodePath("RoomGenScripts/RoomGenerator")
+room_player_placer = NodePath("RoomGenScripts/RoomPlayerPlacer")
 room_enemy_filler = NodePath("RoomGenScripts/RoomEnemyFiller")
 
 [node name="RoomGenScripts" type="Node" parent="." unique_id=651117556]
@@ -665,16 +666,21 @@ random_access_points = true
 access_size = 2
 randomize_seed = true
 noise_height_texture = SubResource("NoiseTexture2D_v158k")
+room_width = 32
+room_height = 32
 fill_percent = 1
 should_be_closed = false
 
-[node name="RoomEnemyFiller" type="Node" parent="RoomGenScripts" unique_id=1869933733 node_paths=PackedStringArray("RoomTileset", "GameScript", "enemy_parent_node")]
+[node name="RoomPlayerPlacer" type="Node" parent="RoomGenScripts" unique_id=865235884 node_paths=PackedStringArray("player", "entity_parent_node")]
+script = ExtResource("3_1l0tm")
+player = NodePath("../../Entities/Player")
+entity_parent_node = NodePath("../../Entities")
+
+[node name="RoomEnemyFiller" type="Node" parent="RoomGenScripts" unique_id=1869933733 node_paths=PackedStringArray("entity_parent_node")]
 script = ExtResource("3_wowpa")
-RoomTileset = NodePath("../../RoomTileset")
-GameScript = NodePath("../..")
-enemy_parent_node = NodePath("../../Entities")
+entity_parent_node = NodePath("../../Entities")
 enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
-enemy_amount = 5
+enemy_amount = 10
 
 [node name="RoomTileset" type="TileMapLayer" parent="." unique_id=2010401026]
 tile_set = SubResource("TileSet_3dryh")
@@ -682,3 +688,6 @@ tile_set = SubResource("TileSet_3dryh")
 [node name="Entities" type="Node2D" parent="." unique_id=1924262135]
 
 [node name="Player" parent="Entities" unique_id=49446474 instance=ExtResource("3_wrm1d")]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=558033211]
+position = Vector2(508, 387)

@@ -129,8 +129,8 @@ func find_closest_valid_tile(next_position: Vector2) -> Vector2i:
 	## First, check if a Tile in the given next_position is valid
 	return_tile_pos = next_position / Singleton.TILE_SIZE
 	return_tile_pos = return_tile_pos.snapped(Vector2i(1, 1))
-	if (RoomManager.room_data.is_tile_empty(return_tile_pos) == true):
-		print("BASE WORKS")
+	if (RoomManager.is_tile_empty(return_tile_pos) == true):
+		#print("BASE WORKS")
 		## That Tile is empty, so the Entity may indeed go there. This works most of the time.
 		return return_tile_pos
 	
@@ -154,18 +154,18 @@ func find_closest_valid_tile(next_position: Vector2) -> Vector2i:
 	## If next_position Tile is orthogonal to Entity, get corner-neighbours.
 	## y is orthogonal - direct left or right to Entity; neighbours are below and above
 	if return_tile_pos.y == 0:
-		print("NEIGH BELOW/ABOVE")
+		#print("NEIGH BELOW/ABOVE")
 		neighbour1 = Vector2i(return_tile_pos.x, -1)
 		neighbour2 = Vector2i(return_tile_pos.x, 1)
 	## x is orthogonal - direct top or bottom to Entity; neighbours are left and right
 	elif return_tile_pos.x == 0:
-		print("NEIGH LEFT/RIGHT")
+		#print("NEIGH LEFT/RIGHT")
 		neighbour1 = Vector2i(1, return_tile_pos.y)
 		neighbour2 = Vector2i(-1, return_tile_pos.y)
 	## If not, the next_position Tile is diagonal to Entity.
 	## Neighbours are: one horizontal to next_position and one vartical to next_position
 	else:
-		print("NEIGH HORIZONTAL/VERTICAL")
+		#print("NEIGH HORIZONTAL/VERTICAL")
 		neighbour1 = Vector2i(return_tile_pos.x, 0)
 		neighbour2 = Vector2i(0, return_tile_pos.y)
 	
@@ -173,17 +173,17 @@ func find_closest_valid_tile(next_position: Vector2) -> Vector2i:
 	## check if either of them is empty and return the first valid one.
 	neighbour1 += (Vector2i(position) / Singleton.TILE_SIZE)
 	neighbour2 += (Vector2i(position) / Singleton.TILE_SIZE)
-	if RoomManager.room_data.is_tile_empty(neighbour1) == true:
-		print("1 WORKED")
+	if RoomManager.is_tile_empty(neighbour1) == true:
+		#print("1 WORKED")
 		return neighbour1
-	elif RoomManager.room_data.is_tile_empty(neighbour2) == true:
-		print("2 WORKED")
+	elif RoomManager.is_tile_empty(neighbour2) == true:
+		#print("2 WORKED")
 		return neighbour2
 	else:
-		print("ALL FAILED!")
+		#print("ALL FAILED!")
 		return (Vector2i(position) / Singleton.TILE_SIZE)
 	
-	print("SOMETHING BROKE: ", return_tile_pos)
+	#print("SOMETHING BROKE: ", return_tile_pos)
 	return return_tile_pos
 
 #endregion
@@ -193,11 +193,11 @@ func find_closest_valid_tile(next_position: Vector2) -> Vector2i:
 ## placed on that Tile, if the Tile contains the Entity's goal. This logic can vary between Entities
 func decide_action(tile_position: Vector2i) -> void:
 	## If that next Tile is empty, move there
-	if RoomManager.room_data.is_tile_empty(tile_position) == true:
+	if RoomManager.is_tile_empty(tile_position) == true:
 		move_entity_to_tile(tile_position)
 	else:
 		## Tile isn't empty, get its contents
-		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+		var contents: Array[Node2D] = RoomManager.return_tile_contents(tile_position)
 		## Check if this Tile contains our goal
 		for content: Node2D in contents:
 			if content == goal:
@@ -216,7 +216,7 @@ func move_entity_to_tile(pos: Vector2i) -> void:
 	if pos != current_pos:
 		## If a given Tile is empty, move the Entity to that spot
 		## and update its position in RoomManger's RoomData Resource
-		if RoomManager.room_data.is_tile_empty(pos):
+		if RoomManager.is_tile_empty(pos):
 			position = pos.snapped(Vector2i.ONE) * Singleton.TILE_SIZE
 			RoomManager.move_entity(current_pos, pos)
 		else:
@@ -282,8 +282,8 @@ func kill_entity() -> void:
 func attack_at_tile(tile_position: Vector2i) -> void:
 	#print("Attempted attack at tile position: ", tile_position)
 	## Can only attack if that given Tile isn't empty
-	if RoomManager.room_data.is_tile_empty(tile_position) == false:
-		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+	if RoomManager.is_tile_empty(tile_position) == false:
+		var contents: Array[Node2D] = RoomManager.return_tile_contents(tile_position)
 		for content: Node2D in contents:
 			if content == goal and goal is Entity:
 				goal.damage_health(damage_value)

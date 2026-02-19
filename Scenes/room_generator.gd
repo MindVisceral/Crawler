@@ -364,7 +364,7 @@ func apply_to_tileset() -> void:
 
 ## Pass on important level information to the Game script so the next step may begin
 func completed_generation() -> void:
-	## Record room data and send it over
+	## Record room data in a new RoomData Resource and send it over to the RoomManager
 	var new_room_data: RoomData = RoomData.new()
 	new_room_data.room_seed = room_seed
 	new_room_data.fill_percent = fill_percent
@@ -377,8 +377,10 @@ func completed_generation() -> void:
 	## Does not keep track of Tile kinds, just if the Tile is filled or not.
 	new_room_data.room_terrain = translate_room_terrain_to_bool(room)
 	
-	## Pass the information, the next step may begin
-	GameScript.retrieve_room_data(new_room_data)
+	## Pass the information to the RoomManager
+	RoomManager.update_roomdata_resource(new_room_data)
+	
+	## Function finished, now GameScript will begin the next step
 
 ## Takes given room Dictionary and changes Tile info from int to bool,
 ## where it's true if Tile is filled (!= -1) and false if empty (== -1)

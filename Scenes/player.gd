@@ -90,12 +90,12 @@ func decide_action(tile_position: Vector2i) -> void:
 	
 	## If it's not a Rest Turn, try movement.
 	## Player moves only if the target Tile is empty
-	if RoomManager.room_data.is_tile_empty(tile_position) == true:
+	if RoomManager.is_tile_empty(tile_position) == true:
 		move_entity_to_tile(tile_position)
 	## If target Tile isn't empty, there's an Entity there, so attack it.
 	else:
 		## Tile isn't empty, get its contents
-		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+		var contents: Array[Node2D] = RoomManager.return_tile_contents(tile_position)
 		## Check if this Tile contains an Enemy
 		for content: Node2D in contents:
 			if content is Entity:
@@ -124,8 +124,8 @@ func move_entity_to_tile(pos: Vector2i) -> void:
 func attack_at_tile(tile_position: Vector2i) -> void:
 	print("Player attempted attack at tile position: ", tile_position)
 	## Can only attack if that given Tile isn't empty
-	if RoomManager.room_data.is_tile_empty(tile_position) == false:
-		var contents: Array[Node2D] = RoomManager.room_data.return_tile_contents(tile_position)
+	if RoomManager.is_tile_empty(tile_position) == false:
+		var contents: Array[Node2D] = RoomManager.return_tile_contents(tile_position)
 		for content: Node2D in contents:
 			if content is Entity:
 				content.damage_health(damage_value)

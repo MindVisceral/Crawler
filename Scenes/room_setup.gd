@@ -2,11 +2,10 @@ extends Node2D
 class_name GameManager
 
 #region Exports
-## Reference to the Player
-@export var player: Player
-
 ## Reference to the room generator
 @export var room_generator: RoomGenerator
+## Reference to the Player placer
+@export var room_player_placer: RoomPlayerPlacer
 ## Reference to the room enemy filler
 @export var room_enemy_filler: RoomEnemyFiller
 #endregion
@@ -16,26 +15,24 @@ class_name GameManager
 var room_data: RoomData
 #endregion
 
+## Steps in preparing the Room for the Game.
+## Each Script does what is is made to do and this function waits until that is done
+## before starting the next Script.
 func _ready() -> void:
-	## When room generator sends a signal that it's done generating,
-	## it returns a RoomData Resource with information about the Room's structure.
-	## The Player is moved to the room's entrance
+	## Generate a new Room
 	room_generator.begin_generating()
 	await room_generator.completed_generation
-	## Add Player to dict of Entities, place it on the start Tile
-	room_data.room_entities[room_generator.room_start_point] = player
-	player.place_entity_at_tile(room_generator.room_start_point)
+	
+	## The Player is moved to the room's entrance
+	room_player_placer.begin_placing_player()
+	await room_player_placer.completed_placing_player()
 	
 	## Room generator calls room enemy filler to start filing the room with Enemies
-	## Wait for that to finish
-	room_enemy_filler.retrieve_room_data(room_data)
 	room_enemy_filler.begin_filling_room()
 	await room_enemy_filler.completed_filling_room
 	
 	## (MORE STEPS GO HERE!)
 	
-	## All Room data must be passed over to the RoomManager
-	RoomManager.room_data = room_data
 	
 	## Room is done, start the game proper by setting up the TurnManager
 	## First, add all Entities to its Turn Queue

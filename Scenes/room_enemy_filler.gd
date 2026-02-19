@@ -2,12 +2,8 @@ extends Node
 class_name RoomEnemyFiller
 
 #region Exports
-## Reference to the Tileset Node (unused!)
-@export var RoomTileset: TileMapLayer
-@export var GameScript: GameManager
-
 ## Reference to the Node the Enemies will be children of.
-@export var enemy_parent_node: Node2D
+@export var entity_parent_node: Node2D
 
 
 @export_group("Enemies")
@@ -22,16 +18,13 @@ class_name RoomEnemyFiller
 #endregion
 
 #region Variables
-## Resource containing all information of a given Room
-var room_data: RoomData
+## Resource containing all information of a given Room.
+## Local-only; meant only to be filled and pass on the data to RoomManager
+@onready var room_data: RoomData = RoomData.new()
 
 ## Dictionary of Enemies placed in the Room
 var enemies_dict: Dictionary[Vector2i, Entity] = {}
 #endregion
-
-## The RoomData Resource must be passed on
-func retrieve_room_data(new_room_data: RoomData) -> void:
-	room_data = new_room_data
 
 ## Called by GameManager when generating a base room is done
 func begin_filling_room() -> void:
@@ -46,7 +39,7 @@ func begin_filling_room() -> void:
 	## Find all empty Tiles in the Room and store them in this Array.
 	## Occupation status is stored in the RoomData Resource
 	var empty_tiles: Array[Vector2i] = []
-	var room_status: Dictionary[Vector2i, bool] = room_data.return_tiles_occupation_dict()
+	var room_status: Dictionary[Vector2i, bool] = RoomManager.return_tiles_occupation_dict()
 	for tile: Vector2i in room_status:
 		if room_status[tile] == false:
 			empty_tiles.append(tile)
@@ -61,7 +54,7 @@ func begin_filling_room() -> void:
 		## Place a random Enemy on that tile
 		var enemy: Enemy = enemies.pick_random()
 		enemies.erase(enemy)
-		enemy_parent_node.add_child(enemy)
+		entity_parent_node.add_child(enemy)
 		
 		## Add this Enemy to dictionary of Entities, which will be added to RoomData
 		enemies_dict[tile] = enemy
@@ -75,8 +68,7 @@ func begin_filling_room() -> void:
 
 ## Pass on important level information to the Game script so the next step may begin
 func completed_filling_room() -> void:
-	## Most important bit of information, Enemies we just generated and placed
-	room_data.room_entities.merge(enemies_dict)
-	
-	## Pass the information, the next step may begin
-	GameScript.retrieve_room_data(room_data)
+	## Record the most important bit of information, Enemies we just generated and placed
+	room_data.room_entities = enemies_dict
+	## Update RoomManager's RoomData Resource with generated data
+	RoomManager.update_roomdata_resource(room_data)
