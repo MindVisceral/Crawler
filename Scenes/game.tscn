@@ -25,7 +25,7 @@ height = 64
 noise = SubResource("FastNoiseLite_1l0tm")
 color_ramp = SubResource("Gradient_i6g32")
 
-[sub_resource type="NavigationPolygon" id="NavigationPolygon_wowpa"]
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_i6g32"]
 vertices = PackedVector2Array(8, 8, -8, 8, -8, -8, 8, -8)
 polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)])
@@ -635,7 +635,7 @@ texture = ExtResource("2_qxrlw")
 23:24/0 = 0
 0:25/0 = 0
 0:25/0/z_index = -1
-0:25/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_wowpa")
+0:25/0/navigation_layer_0/polygon = SubResource("NavigationPolygon_i6g32")
 1:25/0 = 0
 2:25/0 = 0
 3:25/0 = 0
@@ -674,7 +674,7 @@ RoomTileset = NodePath("../../RoomTileset")
 GameScript = NodePath("../..")
 enemy_parent_node = NodePath("../../Entities")
 enemy_types = Array[PackedScene]([ExtResource("4_i6g32")])
-enemy_amount = 0
+enemy_amount = 5
 
 [node name="RoomTileset" type="TileMapLayer" parent="." unique_id=2010401026]
 tile_set = SubResource("TileSet_3dryh")

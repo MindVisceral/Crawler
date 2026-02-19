@@ -74,8 +74,8 @@ func pick_goal_node() -> void:
 	pass  ## Player movement AI goes here!
 
 ## Determine next step towards the goal
-func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
-	return super(next_path_pos)
+func find_next_step_to_goal() -> Vector2i:
+	return super()
 
 #endregion
 

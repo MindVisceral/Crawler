@@ -70,7 +70,7 @@ var room: Dictionary[Vector2i, int] = {}
 #endregion
 
 
-##
+## 
 func _ready() -> void:
 	## Set noise_height_texture width and height to fit the room's width and height
 	noise_height_texture.width = room_width
@@ -89,15 +89,14 @@ func _ready() -> void:
 		var sample_alpha: float = color_ramp.sample(color_ramp.offsets[i+1]).a
 		## Record the alpha value and its corresponding Tile kind value to the Dictionary
 		float_to_tile_dict[sample_alpha] = i
-	
-	print("Dict: ", float_to_tile_dict)
+
 
 func begin_generating() -> void:
 	## Randomize the seed
 	if randomize_seed == true:
 		room_seed += randi()
 	
-	## Get Noise and set Noise seed
+	## Get Noise reference and set Noise seed
 	noise = noise_height_texture.noise
 	noise.seed = room_seed
 	
@@ -176,10 +175,6 @@ func generate_level(start: Vector2i, end: Vector2i) -> void:
 		## New room, 'attempt' is a seed
 		init_room(attempt)
 		
-		## Smooths out above generated room
-		#for i in smoothing_iterations:
-			#smooth_room()
-		
 		## Make space around start and end points to allow for movement
 		make_space(room_start_point, access_size)
 		make_space(room_end_point, access_size)
@@ -209,7 +204,7 @@ func init_room(seed_value: int) -> void:
 	## Noise value at given Tile position
 	var noise_value: float
 	
-	## Initial room filling
+	## Filling the Room with Walls
 	for x in range(room_width):
 		for y in range(room_height):
 			## Keep track of this Tile's position
@@ -220,67 +215,14 @@ func init_room(seed_value: int) -> void:
 			## Remap noise_value to be a number in 0--1 instead of -1--1 by default.
 			## This will ensure the value fits onto the color_ramp
 			noise_value = remap(noise_value, -1, 1, 0, 1)
-			## Now get the alpha value of the Color sampled from color_ramp
-			var sampled_color_value: float = \
-				color_ramp.sample(noise_value).a
-			
+			## Now get the alpha value of the Color sampled from color_ramp.
+			## This is used to get the Tile type from the float_to_tile_dict Dictionary.
+			## This doesn't make any sense intuitively
+			var sampled_color_value: float = color_ramp.sample(noise_value).a
 			
 			## Assign the type of Tile to these coordinates, depending on the value
 			## sampled from the Dictionary of Tiles
 			room[pos] = float_to_tile_dict[sampled_color_value]
-			
-			
-			## NOTE: HERE: Get Color from sample() and compare it to an exported Enum or Dictionary
-			## so it's easy to change what values result in what Tiles. Just change color_ramp to
-			## get more Tiles.
-			
-			## Hardcoded old code
-			#
-			## Set Tile value ("kind") based on noise value
-			## Empty Tile
-			#if noise_value <= 0.001:
-				#room[pos] = -1
-			#elif noise_value > 0.001 && noise_value <= 0.002:
-				#room[pos] = 0
-			#elif noise_value > 0.002 && noise_value <= 0.004:
-				#room[pos] = 1
-			#elif noise_value > 0.004:
-				#room[pos] = 2
-			
-			
-			## old-old code for random/automata filling
-			### Fills the rooms's edges
-			#if x == 0 || x == room_width - 1 || y == 0 || y == room_height - 1:
-				#print("   ACTUALLY USED   ")
-				#room[pos] = true
-			### Randomly decides if given tile is filled or not
-			#else:
-				#room[pos] = randf() * 100 < fill_percent
-
-
-## Smooths out the current room
-func smooth_room() -> void:
-	## Position; made a variable as to not create a new one every loop
-	var pos: Vector2i = Vector2i(0, 0)
-	
-	## New room, result of smoothing
-	var new_room: Dictionary[Vector2i, int] = {}
-	for x in range(room_width):
-		for y in range(room_height):
-			pos = Vector2i(x, y)
-			## Get amount of wall tiles surrounding the given tile
-			var wall_count = get_surrounding_wall_count(pos)
-			
-			## Made up cellular automata rules.
-			if wall_count > 4:
-				new_room[pos] = true
-			elif wall_count < 4:
-				new_room[pos] = false
-			else:
-				new_room[pos] = room[pos]
-	
-	## Update room data
-	room = new_room
 
 ## Returns o the amount of wall tiles around a tile at given position
 func get_surrounding_wall_count(pos: Vector2i) -> int:
@@ -396,6 +338,8 @@ func apply_to_tileset() -> void:
 		for y in range(room_height):
 			pos = Vector2i(x, y)
 			## Wall tile
+			## HERE: Should be reworked to work on undefined amount of different Tiles,
+			## as many as the float_to_tile_dict Dictionary allows
 			if room[pos] != -1:
 				## Determine specific Tile kind based on room[pos] value
 				if room[pos] == 0:
@@ -429,7 +373,8 @@ func completed_generation() -> void:
 	new_room_data.access_size = access_size
 	new_room_data.room_width = room_width
 	new_room_data.room_height = room_height
-	## Most important bit of information, terrain we just generated
+	## Most important bit of information, terrain we just generated.
+	## Does not keep track of Tile kinds, just if the Tile is filled or not.
 	new_room_data.room_terrain = translate_room_terrain_to_bool(room)
 	
 	## Pass the information, the next step may begin

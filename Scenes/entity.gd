@@ -42,6 +42,7 @@ var goal: Node2D = self
 var next_pos: Vector2i
 #endregion
 
+
 func _ready() -> void:
 	## Set NavAgent's pathfinding settings to work for any TILE_SIZE (which is 16x16 by default).
 	## This might not work ideally for unevenly-sized tiles (ex. 12x16)
@@ -59,19 +60,7 @@ func _ready() -> void:
 	
 	## Set current_health to max_health
 	settle_health()
-
-func _physics_process(delta: float) -> void:
-	### Navigation doesn't happen without these circumstances being right
-	#if NavigationServer2D.map_get_iteration_id(nav_agent.get_navigation_map()) == 0:
-		#print("No navmap")
-		#return
-	#if nav_agent.is_navigation_finished():
-		#print("Done with navigation")
-		#return
 	
-	## Run the pathfinding algorithm, including targetting (finding the Enemy's goal)
-	#pathfind()
-	pass
 
 #region Entity Turn functions
 ## All Entity turns are called in order by a Queue in TurnManager Autoload
@@ -100,8 +89,7 @@ func pathfind() -> void:
 	## Pick a goal from all Entities present in the Room
 	pick_goal_node()
 	## Find a path to the goal
-	var next_path_pos: Vector2i
-	next_path_pos = find_next_step_to_goal(next_path_pos)
+	var next_path_pos: Vector2i = find_next_step_to_goal()
 	
 	## Debugging code for paths, snapping to paths
 	#var navigation_path = nav_agent.get_current_navigation_path()
@@ -123,13 +111,80 @@ func pick_goal_node() -> void:
 	pass  ## Defined by each Entity's specific AI
 
 ## Determine next step towards the goal
-func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
-	next_path_pos = nav_agent.get_next_path_position()  ## in non-tile coordinates!
-	next_path_pos = next_path_pos / Singleton.TILE_SIZE  ## Divided to give tile coordinates!
-	next_path_pos = next_path_pos.snapped(Vector2i(1, 1))  ## Snap to nearest full value
+func find_next_step_to_goal() -> Vector2i:
+	var next_path_pos: Vector2i = nav_agent.get_next_path_position()  ## in non-tile coordinates!
+	
+	next_path_pos = find_closest_valid_tile(next_path_pos)
+	
+	#next_path_pos = next_path_pos / Singleton.TILE_SIZE  ## Divided to give tile coordinates!
+	#next_path_pos = next_path_pos.snapped(Vector2i(1, 1))  ## Snap to nearest full value
 	## This snapping may still break a bit sometimes due to NavAgent's navigation settings,
 	## but little errors like that only manifest by picking wrong paths and are rarely noticable.
 	return next_path_pos
+
+## Returns the nearest valid (empty) Tile in Tile coordinates, given a position in non-Tile space
+func find_closest_valid_tile(next_position: Vector2) -> Vector2i:
+	var return_tile_pos: Vector2i
+	
+	## First, check if a Tile in the given next_position is valid
+	return_tile_pos = next_position / Singleton.TILE_SIZE
+	return_tile_pos = return_tile_pos.snapped(Vector2i(1, 1))
+	if (RoomManager.room_data.is_tile_empty(return_tile_pos) == true):
+		print("BASE WORKS")
+		## That Tile is empty, so the Entity may indeed go there. This works most of the time.
+		return return_tile_pos
+	
+	
+	## If that Tile isn't empty, a different one must be picked. Messily.
+	## We will try two more Tiles before giving up, those that are neighbours to next_position Tile.
+	## ex. neighbours of Right Tile (1, 0) will be corners (1, -1) and (1, 1); top & bottom right,
+	## neighbours of corner Tile (1, 1) will be ortho. (1, 0) and (0, 1); right & bottom middle
+	#
+	## First, determine next_position's location on a 3x3 grid around the Entity
+	## by subtracting it from the Entity's position.
+	## This should result in coordinates between (-1, -1) and (1, 1),
+	## but only if next_position is adjacent to the Entity. That fact isn't checked here.
+	return_tile_pos -= (Vector2i(position) / Singleton.TILE_SIZE)
+	
+	## Then determine its neighbours in this 3x3 grid. Middle Tile (Entity positon) not included.
+	## The checks in this if-tree are done in perceived order of prevelance in-game.
+	## The two bottom statements may never even happen.
+	var neighbour1: Vector2i
+	var neighbour2: Vector2i
+	## If next_position Tile is orthogonal to Entity, get corner-neighbours.
+	## y is orthogonal - direct left or right to Entity; neighbours are below and above
+	if return_tile_pos.y == 0:
+		print("NEIGH BELOW/ABOVE")
+		neighbour1 = Vector2i(return_tile_pos.x, -1)
+		neighbour2 = Vector2i(return_tile_pos.x, 1)
+	## x is orthogonal - direct top or bottom to Entity; neighbours are left and right
+	elif return_tile_pos.x == 0:
+		print("NEIGH LEFT/RIGHT")
+		neighbour1 = Vector2i(1, return_tile_pos.y)
+		neighbour2 = Vector2i(-1, return_tile_pos.y)
+	## If not, the next_position Tile is diagonal to Entity.
+	## Neighbours are: one horizontal to next_position and one vartical to next_position
+	else:
+		print("NEIGH HORIZONTAL/VERTICAL")
+		neighbour1 = Vector2i(return_tile_pos.x, 0)
+		neighbour2 = Vector2i(0, return_tile_pos.y)
+	
+	## Now, having the neighbours, translate them to global Tile space instead of this 3x3 grid and
+	## check if either of them is empty and return the first valid one.
+	neighbour1 += (Vector2i(position) / Singleton.TILE_SIZE)
+	neighbour2 += (Vector2i(position) / Singleton.TILE_SIZE)
+	if RoomManager.room_data.is_tile_empty(neighbour1) == true:
+		print("1 WORKED")
+		return neighbour1
+	elif RoomManager.room_data.is_tile_empty(neighbour2) == true:
+		print("2 WORKED")
+		return neighbour2
+	else:
+		print("ALL FAILED!")
+		return (Vector2i(position) / Singleton.TILE_SIZE)
+	
+	print("SOMETHING BROKE: ", return_tile_pos)
+	return return_tile_pos
 
 #endregion
 

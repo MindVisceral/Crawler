@@ -37,6 +37,12 @@ func pathfind() -> void:
 ## Pick a goal to move towards based on Enemy-specific behaviour
 func pick_goal_node() -> void:
 	super()
+	
+	## If Player is already picked, just update the target position
+	if goal is Player:
+		nav_agent.target_position = goal.global_position
+		return
+	
 	## By default, just pick the Player, if present, from all Entities in the Room,
 	## which we take from Dictionary of Entities from RoomManager's RoomData Resource
 	var entities: Dictionary[Vector2i, Entity] = RoomManager.room_data.room_entities
@@ -48,8 +54,8 @@ func pick_goal_node() -> void:
 			break  ## Stop looking for more goals
 
 ## Determine next step towards the goal
-func find_next_step_to_goal(next_path_pos: Vector2i) -> Vector2i:
-	return super(next_path_pos)
+func find_next_step_to_goal() -> Vector2i:
+	return super()
 
 #endregion
 

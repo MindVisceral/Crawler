@@ -48,8 +48,8 @@ func process_turns() -> void:
 		## Take the Entity from the front of the Queue and remove it.
 		## If an Entity wants to have another turn, it will have to request one
 		current_turn_user = turn_queue.pop_front()
-		print("TURN QUEUE:", turn_queue)
-		print("CURRENT TURN BELONGS TO: ", current_turn_user)
+		#print("TURN QUEUE:", turn_queue)
+		#print("CURRENT TURN BELONGS TO: ", current_turn_user)
 		current_turn_user.perform_turn()
 		
 		## If a given Entity has instant Turns turned on, the game should NOT use await.
